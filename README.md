@@ -1,10 +1,65 @@
-# 🛡️ Tengrow — Content Protection for Android
+<div align="center">
 
-[![Build APK](https://github.com/Bilal899-tech/Tengrow/actions/workflows/build.yml/badge.svg)](https://github.com/Bilal899-tech/Tengrow/actions/workflows/build.yml)
+  # 🛡️ Tengrow
 
-**Tengrow** is a lightweight, private, open-source Android app that blocks adult content and restricted keywords in real-time. It uses the Accessibility Service for instant keyword detection and Device Admin for uninstallation protection. **No servers, no data leaves your phone.**
+  **Content Protection for Android — Block. Protect. Control.**
 
-Created by **Nexagaze AI Studio** — [nexagaze.com](https://www.nexagaze.com/)
+  [![Build](https://img.shields.io/github/actions/workflow/status/Bilal899-tech/Tengrow/build.yml?branch=main&style=for-the-badge&label=BUILD&color=2EA44F)](https://github.com/Bilal899-tech/Tengrow/actions)
+  [![License](https://img.shields.io/badge/LICENSE-MIT-2EA44F?style=for-the-badge)](LICENSE)
+  [![Release](https://img.shields.io/github/v/release/Bilal899-tech/Tengrow?style=for-the-badge&label=RELEASE&color=2EA44F)](https://github.com/Bilal899-tech/Tengrow/releases/latest)
+  [![Download](https://img.shields.io/badge/DOWNLOAD-APK-2EA44F?style=for-the-badge&logo=android)](https://github.com/Bilal899-tech/Tengrow/releases/latest/download/app-debug.apk)
+
+</div>
+
+<br>
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <strong>Solo Founder</strong><br>
+        <a href="https://github.com/Bilal899-tech">Bilal</a><br>
+        <sub>Creator & Developer</sub>
+      </td>
+      <td width="30"></td>
+      <td align="center">
+        <strong>AI Studio</strong><br>
+        <a href="https://www.nexagaze.com/">Nexagaze AI Studio</a><br>
+        <sub>Innovation Lab</sub>
+      </td>
+      <td width="30"></td>
+      <td align="center">
+        <strong>Project</strong><br>
+        <a href="https://github.com/Bilal899-tech/Tengrow">Tengrow</a><br>
+        <sub>Open Source</sub>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<br>
+
+---
+
+## 📥 Download
+
+<p align="center">
+  <a href="https://github.com/Bilal899-tech/Tengrow/releases/latest/download/app-debug.apk">
+    <img src="https://img.shields.io/badge/⬇%20Download%20APK-2EA44F?style=for-the-badge&logo=android&logoColor=white" alt="Download APK">
+  </a>
+  <br>
+  <sub>Latest release • Direct download • No sign-up required</sub>
+</p>
+
+**To install:** transfer the APK to your phone, open it, and allow installation from unknown sources.
+
+<details>
+<summary><strong>💡 Need the latest build?</strong></summary>
+
+If you want the absolute latest code (not yet released), grab the artifact from [Actions](https://github.com/Bilal899-tech/Tengrow/actions):
+1. Click the latest workflow run
+2. Scroll to **Artifacts** → download **Tengrow-APK**
+</details>
 
 ---
 
@@ -33,34 +88,13 @@ Created by **Nexagaze AI Studio** — [nexagaze.com](https://www.nexagaze.com/)
 
 ---
 
-## 📥 Download APK
-
-### Option 1: GitHub Actions (Recommended — Auto Builds)
-
-1. Go to **[Actions](https://github.com/Bilal899-tech/Tengrow/actions)** tab
-2. Click the latest workflow run
-3. Scroll down to **Artifacts** → download **Tengrow-APK**
-4. Transfer the APK to your phone and install
-
-### Option 2: Build Locally
-
-```bash
-git clone https://github.com/Bilal899-tech/Tengrow.git
-cd Tengrow
-# Open in Android Studio → Build → Build APK
-```
-
----
-
 ## 🔧 First-Time Setup
-
-After installing the APK on your phone:
 
 1. Open **Tengrow**
 2. Set a **master password** (4+ characters)
 3. **Enable Accessibility Service** — Settings → Accessibility → Tengrow
 4. **Activate Device Admin** — follow the on-screen prompt
-5. Done ✅ — the shield is active
+5. Done ✅
 
 ---
 
@@ -74,6 +108,18 @@ After installing the APK on your phone:
 
 ---
 
+## 🔨 Build Locally
+
+```bash
+git clone https://github.com/Bilal899-tech/Tengrow.git
+cd Tengrow
+./gradlew assembleDebug
+```
+
+APK output: `app/build/outputs/apk/debug/app-debug.apk`
+
+---
+
 ## 📄 License
 
 **Code:** MIT License — free to use, modify, and distribute.
@@ -81,10 +127,14 @@ After installing the APK on your phone:
 **Branding:** The "Tengrow" name, logo, shield icon, promotional banners,
 and all associated branding assets are the exclusive property of
 **Nexagaze AI Studio** and its founder **Bilal**.
-See [LICENSE](LICENSE) for details.
 
 ---
 
-<p align="center">
-  Created with ❤️ by <a href="https://www.nexagaze.com/">Nexagaze AI Studio</a>
-</p>
+<div align="center">
+  <br>
+  <strong>Built by a solo founder with ❤️</strong><br>
+  <a href="https://github.com/Bilal899-tech">Bilal</a> ·
+  <a href="https://www.nexagaze.com/">Nexagaze AI Studio</a>
+  <br><br>
+  <sub>© 2026 Nexagaze AI Studio. All rights reserved.</sub>
+</div>

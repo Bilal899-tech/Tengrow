@@ -246,7 +246,7 @@ private class KeywordAdapter(
     companion object {
         private val DIFF = object : DiffUtil.ItemCallback<String>() {
             override fun areItemsTheSame(a: String, b: String) = a == b
-            override fun areContentsSame(a: String, b: String) = a == b
+            override fun areContentsTheSame(a: String, b: String) = a == b
         }
     }
 }
