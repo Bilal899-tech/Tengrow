@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SafeGuard - About &amp; Help</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wdth,wght,GRAD@8..144,25..151,100..1000,-200..150&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#e2e2e2",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed-dim": "#a9c7ff",
+                    "on-surface-variant": "#424752",
+                    "on-secondary-fixed": "#001945",
+                    "error": "#ba1a1a",
+                    "on-primary-container": "#dae5ff",
+                    "on-tertiary-fixed": "#341100",
+                    "surface-container": "#eeeeee",
+                    "outline": "#727783",
+                    "surface": "#f9f9f9",
+                    "secondary": "#2b5bb5",
+                    "secondary-container": "#759efd",
+                    "tertiary": "#853600",
+                    "inverse-primary": "#a9c7ff",
+                    "primary": "#004d99",
+                    "on-tertiary-fixed-variant": "#793100",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#ab4800",
+                    "surface-container-low": "#f3f3f3",
+                    "outline-variant": "#c2c6d4",
+                    "surface-tint": "#005db7",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#ffb691",
+                    "tertiary-fixed": "#ffdbcb",
+                    "on-secondary-fixed-variant": "#00429c",
+                    "surface-dim": "#dadada",
+                    "on-primary-fixed": "#001b3d",
+                    "surface-variant": "#e2e2e2",
+                    "on-tertiary-container": "#ffded0",
+                    "error-container": "#ffdad6",
+                    "surface-bright": "#f9f9f9",
+                    "secondary-fixed": "#d9e2ff",
+                    "secondary-fixed-dim": "#b0c6ff",
+                    "primary-container": "#1565c0",
+                    "on-primary-fixed-variant": "#00468c",
+                    "on-surface": "#1a1c1c",
+                    "background": "#f9f9f9",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed": "#d6e3ff",
+                    "inverse-on-surface": "#f1f1f1",
+                    "on-error": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "on-secondary-container": "#00337c",
+                    "surface-container-high": "#e8e8e8",
+                    "inverse-surface": "#2f3131",
+                    "on-background": "#1a1c1c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-tablet": "24px",
+                    "gutter": "16px",
+                    "stack-lg": "24px",
+                    "stack-sm": "8px",
+                    "stack-md": "16px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "body-md": ["Roboto Flex"],
+                    "title-md": ["Roboto Flex"],
+                    "body-sm": ["Roboto Flex"],
+                    "label-md": ["Roboto Flex"],
+                    "headline-lg-mobile": ["Roboto Flex"],
+                    "headline-lg": ["Roboto Flex"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                    "title-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "700"}],
+                    "body-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0.4px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Roboto Flex', sans-serif; }
+        .marquee-container {
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+        }
+        .marquee-content {
+            display: inline-block;
+            animation: marquee 30s linear infinite;
+        }
+        @keyframes marquee {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #c2c6d4;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen pb-24">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-margin-mobile h-16 w-full fixed top-0 z-50 bg-surface dark:bg-background border-b border-outline-variant dark:border-outline shadow-sm">
+<div class="flex items-center gap-3">
+<img alt="SafeGuard Logo" class="w-8 h-8 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBl-AViaMUCALuYBw7wA09VJ50TTKwJG6abryMAHF4n6cnZRIhd6yafyxJNk18GotfsAOxCUT_O5Doz5q0qnVZWnwN1658Uw79bNq8RBO6cflvVMzdRG-uJ96xEQ_UuZoeLNsh8MRBFD5pY8Rgx38ZjsPluwFGJXJA2LUJdYPi9Z5jKptvqPsANtBVijApsFO9DaoBTokNg26uOcTwr8Y2-ksPTugVkaCwfnwSYSiSKDIKW4-fWod-uposGwLEAmEfgZ1ipFOBRHT8"/>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary dark:text-primary-fixed-dim">SafeGuard</h1>
+</div>
+<button class="text-primary dark:text-primary-fixed-dim p-2 rounded-full hover:bg-surface-container dark:hover:bg-surface-variant transition-colors duration-200">
+<span class="material-symbols-outlined" data-icon="security">security</span>
+</button>
+</header>
+<main class="mt-20 px-margin-mobile flex flex-col gap-stack-lg max-w-4xl mx-auto">
+<!-- App Identity Section (Bento Style Card) -->
+<section class="bg-surface-container-lowest border border-outline-variant p-stack-md rounded-xl shadow-sm flex flex-col items-center text-center">
+<div class="w-24 h-24 mb-4">
+<img alt="SafeGuard Icon Large" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBl-AViaMUCALuYBw7wA09VJ50TTKwJG6abryMAHF4n6cnZRIhd6yafyxJNk18GotfsAOxCUT_O5Doz5q0qnVZWnwN1658Uw79bNq8RBO6cflvVMzdRG-uJ96xEQ_UuZoeLNsh8MRBFD5pY8Rgx38ZjsPluwFGJXJA2LUJdYPi9Z5jKptvqPsANtBVijApsFO9DaoBTokNg26uOcTwr8Y2-ksPTugVkaCwfnwSYSiSKDIKW4-fWod-uposGwLEAmEfgZ1ipFOBRHT8"/>
+</div>
+<h2 class="font-headline-lg text-headline-lg text-primary">SafeGuard Pro</h2>
+<p class="font-label-md text-label-md text-on-surface-variant">Version v1.0.4</p>
+<div class="mt-4 px-4 py-1 bg-secondary-container text-on-secondary-container rounded-full font-label-md text-label-md">
+                Secure Environment Verified
+            </div>
+</section>
+<!-- Critical Instructions Section -->
+<section class="bg-primary-container text-on-primary-container p-stack-md rounded-xl shadow-md border-l-4 border-primary">
+<div class="flex gap-4 items-start">
+<span class="material-symbols-outlined shrink-0" data-icon="gpp_maybe" style="font-variation-settings: 'FILL' 1;">gpp_maybe</span>
+<div>
+<h3 class="font-title-md text-title-md mb-1">Critical Protection Setup</h3>
+<p class="font-body-md text-body-md opacity-90">Keep Accessibility Service and Device Admin enabled for full protection. Disabling these may leave your device vulnerable to unauthorized intrusions.</p>
+</div>
+</div>
+</section>
+<!-- Help & FAQ Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-gutter">
+<!-- FAQ Section -->
+<section class="bg-surface-container-lowest border border-outline-variant p-stack-md rounded-xl shadow-sm">
+<div class="flex items-center gap-2 mb-4 text-primary">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<h3 class="font-title-md text-title-md">Helpful Links &amp; FAQ</h3>
+</div>
+<div class="space-y-3">
+<details class="group border-b border-outline-variant pb-2">
+<summary class="list-none cursor-pointer flex justify-between items-center font-label-md text-label-md text-on-surface">
+                            How to update filters?
+                            <span class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+</summary>
+<p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">Updates are handled automatically every 24 hours. You can trigger a manual sync in Dashboard settings.</p>
+</details>
+<details class="group border-b border-outline-variant pb-2">
+<summary class="list-none cursor-pointer flex justify-between items-center font-label-md text-label-md text-on-surface">
+                            Privacy Policy
+                            <span class="material-symbols-outlined transition-transform group-open:rotate-180">expand_more</span>
+</summary>
+<p class="mt-2 font-body-sm text-body-sm text-on-surface-variant">We prioritize your data. No personal identifiers are ever sent to our cloud servers.</p>
+</details>
+<a class="flex items-center justify-between font-label-md text-label-md text-primary pt-2 hover:underline" href="#">
+                        Contact Support Team
+                        <span class="material-symbols-outlined text-sm" data-icon="open_in_new">open_in_new</span>
+</a>
+</div>
+</section>
+<!-- Open Source Notice -->
+<section class="bg-surface-container-lowest border border-outline-variant p-stack-md rounded-xl shadow-sm flex flex-col h-full">
+<div class="flex items-center gap-2 mb-4 text-secondary">
+<span class="material-symbols-outlined" data-icon="code">code</span>
+<h3 class="font-title-md text-title-md">Open Source Notice</h3>
+</div>
+<div class="bg-surface-container-low p-3 rounded-lg flex-grow overflow-hidden relative">
+<div class="marquee-container h-full">
+<div class="marquee-content font-body-sm text-body-sm text-on-surface-variant italic">
+                            SafeGuard relies on the following open source libraries: OpenSSL v3.0, SQLite3, Flutter Core, Material Icons, and many community-driven security frameworks. We thank the global developer community for their contributions to digital safety.
+                        </div>
+</div>
+<div class="mt-4 custom-scrollbar overflow-y-auto max-h-24">
+<p class="font-body-sm text-body-sm text-on-surface-variant leading-relaxed">
+                            Licensing: MIT License (c) 2024 SafeGuard Dev Team. Permission is hereby granted, free of charge, to any person obtaining a copy...
+                        </p>
+</div>
+</div>
+</section>
+</div>
+<!-- Dashboard Return Action -->
+<footer class="mt-stack-lg flex flex-col items-center gap-stack-md">
+<button class="w-full max-w-xs flex items-center justify-center gap-2 bg-primary text-on-primary py-4 px-6 rounded-full font-title-md text-title-md shadow-lg active:scale-95 transition-transform duration-150" onclick="window.location.reload()">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+                Back to Dashboard
+            </button>
+<p class="font-body-sm text-body-sm text-on-surface-variant opacity-60">System uptime: 14d 02h 44m</p>
+</footer>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-4 pb-safe bg-surface dark:bg-background border-t border-outline-variant dark:border-outline shadow-lg">
+<a class="flex flex-col items-center justify-center bg-primary-container text-on-primary-container rounded-full px-5 py-1 transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+<span class="font-label-md text-label-md">About</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-5 py-1 hover:bg-surface-container-high transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</a>
+</nav>
+<script>
+        // Simple micro-interaction for the shield icon on hover
+        const logo = document.querySelector('img[alt="SafeGuard Logo"]');
+        if(logo) {
+            logo.addEventListener('mouseenter', () => {
+                logo.style.transform = 'scale(1.1) rotate(5deg)';
+                logo.style.transition = 'transform 0.3s ease';
+            });
+            logo.addEventListener('mouseleave', () => {
+                logo.style.transform = 'scale(1) rotate(0deg)';
+            });
+        }
+    </script>
+</body></html>

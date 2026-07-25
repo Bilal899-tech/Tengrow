@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SafeGuard - Unlock</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-container-highest": "#e2e2e2",
+                        "surface-container-lowest": "#ffffff",
+                        "primary-fixed-dim": "#a9c7ff",
+                        "on-surface-variant": "#424752",
+                        "on-secondary-fixed": "#001945",
+                        "error": "#ba1a1a",
+                        "on-primary-container": "#dae5ff",
+                        "on-tertiary-fixed": "#341100",
+                        "surface-container": "#eeeeee",
+                        "outline": "#727783",
+                        "surface": "#f9f9f9",
+                        "secondary": "#2b5bb5",
+                        "secondary-container": "#759efd",
+                        "tertiary": "#853600",
+                        "inverse-primary": "#a9c7ff",
+                        "primary": "#004d99",
+                        "on-tertiary-fixed-variant": "#793100",
+                        "on-tertiary": "#ffffff",
+                        "tertiary-container": "#ab4800",
+                        "surface-container-low": "#f3f3f3",
+                        "outline-variant": "#c2c6d4",
+                        "surface-tint": "#005db7",
+                        "on-error-container": "#93000a",
+                        "tertiary-fixed-dim": "#ffb691",
+                        "tertiary-fixed": "#ffdbcb",
+                        "on-secondary-fixed-variant": "#00429c",
+                        "surface-dim": "#dadada",
+                        "on-primary-fixed": "#001b3d",
+                        "surface-variant": "#e2e2e2",
+                        "on-tertiary-container": "#ffded0",
+                        "error-container": "#ffdad6",
+                        "surface-bright": "#f9f9f9",
+                        "secondary-fixed": "#d9e2ff",
+                        "secondary-fixed-dim": "#b0c6ff",
+                        "primary-container": "#1565c0",
+                        "on-primary-fixed-variant": "#00468c",
+                        "on-surface": "#1a1c1c",
+                        "background": "#f9f9f9",
+                        "on-secondary": "#ffffff",
+                        "primary-fixed": "#d6e3ff",
+                        "inverse-on-surface": "#f1f1f1",
+                        "on-error": "#ffffff",
+                        "on-primary": "#ffffff",
+                        "on-secondary-container": "#00337c",
+                        "surface-container-high": "#e8e8e8",
+                        "inverse-surface": "#2f3131",
+                        "on-background": "#1a1c1c"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-tablet": "24px",
+                        "gutter": "16px",
+                        "stack-lg": "24px",
+                        "stack-sm": "8px",
+                        "stack-md": "16px",
+                        "margin-mobile": "16px"
+                    },
+                    "fontFamily": {
+                        "body-md": ["Roboto Flex"],
+                        "title-md": ["Roboto Flex"],
+                        "body-sm": ["Roboto Flex"],
+                        "label-md": ["Roboto Flex"],
+                        "headline-lg-mobile": ["Roboto Flex"],
+                        "headline-lg": ["Roboto Flex"]
+                    },
+                    "fontSize": {
+                        "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                        "title-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "700"}],
+                        "body-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0.4px", "fontWeight": "400"}],
+                        "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                        "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "700"}],
+                        "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "700"}]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        body {
+            font-family: 'Roboto Flex', sans-serif;
+            background-color: #f9f9f9;
+        }
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-auto-rows: minmax(100px, auto);
+            gap: 16px;
+        }
+        .modal-overlay {
+            backdrop-filter: blur(8px);
+            background-color: rgba(26, 28, 28, 0.4);
+        }
+        .eye-toggle-btn:active {
+            transform: scale(0.9);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen">
+<!-- TopAppBar -->
+<header class="flex justify-between items-center px-margin-mobile h-16 w-full fixed top-0 z-50 bg-surface dark:bg-background border-b border-outline-variant dark:border-outline shadow-sm">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container overflow-hidden">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">security</span>
+</div>
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary dark:text-primary-fixed-dim">SafeGuard</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container transition-colors duration-200">
+<span class="material-symbols-outlined text-primary">security</span>
+</button>
+</header>
+<!-- Main Content Canvas (Blurred background content to show state) -->
+<main class="pt-24 px-margin-mobile pb-32 max-w-7xl mx-auto">
+<div class="flex flex-col gap-stack-lg opacity-40 select-none pointer-events-none">
+<section class="flex flex-col gap-stack-sm">
+<h1 class="font-headline-lg text-headline-lg text-on-surface">Security Overview</h1>
+<p class="font-body-md text-body-md text-on-surface-variant">Last scan performed 14 minutes ago. System is protected.</p>
+</section>
+<!-- Placeholder Bento Grid to simulate actual app content -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<div class="col-span-1 md:col-span-2 bg-surface-container-lowest border border-outline-variant p-6 rounded-xl shadow-sm">
+<h2 class="font-title-md text-title-md mb-4 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">shield</span>
+                        Network Integrity
+                    </h2>
+<div class="h-32 bg-surface-container-low rounded-lg animate-pulse"></div>
+</div>
+<div class="col-span-1 bg-surface-container-lowest border border-outline-variant p-6 rounded-xl shadow-sm">
+<h3 class="font-title-md text-title-md mb-4">Device Status</h3>
+<ul class="flex flex-col gap-4">
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-green-600">check_circle</span>
+<span class="font-body-md text-body-md">Firewall Active</span>
+</li>
+<li class="flex items-center gap-3">
+<span class="material-symbols-outlined text-green-600">check_circle</span>
+<span class="font-body-md text-body-md">OS Up to date</span>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</main>
+<!-- Unlock Dialog Modal -->
+<div class="fixed inset-0 z-[100] flex items-center justify-center modal-overlay transition-opacity duration-300" id="unlock-dialog">
+<div class="w-[calc(100%-32px)] max-w-md bg-surface-container-lowest rounded-xl border border-outline-variant shadow-lg p-8 transform transition-all scale-100 flex flex-col gap-stack-lg">
+<!-- Icon & Headline -->
+<div class="flex flex-col items-center text-center gap-stack-sm">
+<div class="w-16 h-16 bg-primary-container/10 text-primary rounded-full flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-4xl" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface">Security Verification</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Enter master password to proceed</p>
+</div>
+<!-- Password Form -->
+<form class="flex flex-col gap-stack-md" id="unlock-form">
+<div class="relative">
+<label class="absolute -top-2.5 left-3 px-1 bg-surface-container-lowest text-xs font-label-md text-primary transition-all" for="password">Master Password</label>
+<div class="flex items-center border border-primary rounded-lg focus-within:ring-2 focus-within:ring-primary/20 overflow-hidden">
+<input class="w-full px-4 py-3 bg-transparent border-none focus:ring-0 text-on-surface font-body-md placeholder:text-outline-variant" id="password" name="password" placeholder="••••••••••••" required="" type="password"/>
+<button class="px-3 text-on-surface-variant hover:text-primary transition-colors eye-toggle-btn" id="toggle-password" type="button">
+<span class="material-symbols-outlined" id="eye-icon">visibility</span>
+</button>
+</div>
+</div>
+<!-- Primary Action -->
+<button class="w-full bg-primary-container text-on-primary-container font-label-md text-label-md py-4 rounded-full shadow-sm hover:opacity-90 active:scale-95 transition-all duration-150 flex items-center justify-center gap-2" type="submit">
+<span class="material-symbols-outlined text-lg" style="font-variation-settings: 'FILL' 1;">lock_open</span>
+                    Unlock
+                </button>
+</form>
+<!-- Secondary Action / Support -->
+<div class="text-center pt-2">
+<a class="font-body-sm text-body-sm text-on-surface-variant hover:text-primary underline decoration-outline-variant underline-offset-4 transition-colors" href="#">
+                    Forgot password? Contact support.
+                </a>
+</div>
+</div>
+</div>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-4 pb-safe bg-surface dark:bg-background border-t border-outline-variant dark:border-outline shadow-lg opacity-40 pointer-events-none">
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-5 py-1">
+<span class="material-symbols-outlined">info</span>
+<span class="font-label-md text-label-md">About</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-5 py-1">
+<span class="material-symbols-outlined">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</div>
+</nav>
+<script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const passwordInput = document.getElementById('password');
+            const toggleBtn = document.getElementById('toggle-password');
+            const eyeIcon = document.getElementById('eye-icon');
+            const form = document.getElementById('unlock-form');
+
+            // Password Toggle logic
+            toggleBtn.addEventListener('click', () => {
+                const isPassword = passwordInput.getAttribute('type') === 'password';
+                passwordInput.setAttribute('type', isPassword ? 'text' : 'password');
+                eyeIcon.textContent = isPassword ? 'visibility_off' : 'visibility';
+            });
+
+            // Handle Submit
+            form.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const btn = form.querySelector('button[type="submit"]');
+                const originalContent = btn.innerHTML;
+                
+                // Show simulated progress
+                btn.disabled = true;
+                btn.innerHTML = `
+                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-on-primary-container" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Verifying...
+                `;
+
+                setTimeout(() => {
+                    // Flash success or reset for demo
+                    btn.innerHTML = `<span class="material-symbols-outlined">check_circle</span> Verified`;
+                    btn.classList.replace('bg-primary-container', 'bg-green-600');
+                    
+                    setTimeout(() => {
+                        alert('Identity verified. Access granted.');
+                        // In a real app, we would close the dialog and restore opacity
+                        const dialog = document.getElementById('unlock-dialog');
+                        dialog.classList.add('opacity-0', 'pointer-events-none');
+                        document.querySelector('main').classList.remove('opacity-40', 'select-none', 'pointer-events-none');
+                        document.querySelector('nav').classList.remove('opacity-40', 'pointer-events-none');
+                    }, 800);
+                }, 1500);
+            });
+        });
+    </script>
+</body></html>

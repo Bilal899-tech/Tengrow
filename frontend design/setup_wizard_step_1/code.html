@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SafeGuard - Setup Wizard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,100..1000&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-container-highest": "#e2e2e2",
+                    "surface-container-lowest": "#ffffff",
+                    "primary-fixed-dim": "#a9c7ff",
+                    "on-surface-variant": "#424752",
+                    "on-secondary-fixed": "#001945",
+                    "error": "#ba1a1a",
+                    "on-primary-container": "#dae5ff",
+                    "on-tertiary-fixed": "#341100",
+                    "surface-container": "#eeeeee",
+                    "outline": "#727783",
+                    "surface": "#f9f9f9",
+                    "secondary": "#2b5bb5",
+                    "secondary-container": "#759efd",
+                    "tertiary": "#853600",
+                    "inverse-primary": "#a9c7ff",
+                    "primary": "#004d99",
+                    "on-tertiary-fixed-variant": "#793100",
+                    "on-tertiary": "#ffffff",
+                    "tertiary-container": "#ab4800",
+                    "surface-container-low": "#f3f3f3",
+                    "outline-variant": "#c2c6d4",
+                    "surface-tint": "#005db7",
+                    "on-error-container": "#93000a",
+                    "tertiary-fixed-dim": "#ffb691",
+                    "tertiary-fixed": "#ffdbcb",
+                    "on-secondary-fixed-variant": "#00429c",
+                    "surface-dim": "#dadada",
+                    "on-primary-fixed": "#001b3d",
+                    "surface-variant": "#e2e2e2",
+                    "on-tertiary-container": "#ffded0",
+                    "error-container": "#ffdad6",
+                    "surface-bright": "#f9f9f9",
+                    "secondary-fixed": "#d9e2ff",
+                    "secondary-fixed-dim": "#b0c6ff",
+                    "primary-container": "#1565c0",
+                    "on-primary-fixed-variant": "#00468c",
+                    "on-surface": "#1a1c1c",
+                    "background": "#f9f9f9",
+                    "on-secondary": "#ffffff",
+                    "primary-fixed": "#d6e3ff",
+                    "inverse-on-surface": "#f1f1f1",
+                    "on-error": "#ffffff",
+                    "on-primary": "#ffffff",
+                    "on-secondary-container": "#00337c",
+                    "surface-container-high": "#e8e8e8",
+                    "inverse-surface": "#2f3131",
+                    "on-background": "#1a1c1c"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-tablet": "24px",
+                    "gutter": "16px",
+                    "stack-lg": "24px",
+                    "stack-sm": "8px",
+                    "stack-md": "16px",
+                    "margin-mobile": "16px"
+            },
+            "fontFamily": {
+                    "body-md": ["Roboto Flex"],
+                    "title-md": ["Roboto Flex"],
+                    "body-sm": ["Roboto Flex"],
+                    "label-md": ["Roboto Flex"],
+                    "headline-lg-mobile": ["Roboto Flex"],
+                    "headline-lg": ["Roboto Flex"]
+            },
+            "fontSize": {
+                    "body-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.25px", "fontWeight": "400"}],
+                    "title-md": ["16px", {"lineHeight": "24px", "letterSpacing": "0.15px", "fontWeight": "700"}],
+                    "body-sm": ["13px", {"lineHeight": "18px", "letterSpacing": "0.4px", "fontWeight": "400"}],
+                    "label-md": ["14px", {"lineHeight": "20px", "letterSpacing": "0.1px", "fontWeight": "500"}],
+                    "headline-lg-mobile": ["28px", {"lineHeight": "36px", "letterSpacing": "0px", "fontWeight": "700"}],
+                    "headline-lg": ["32px", {"lineHeight": "40px", "letterSpacing": "0px", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Roboto Flex', sans-serif;
+            background-color: #f9f9f9;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .step-transition {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Custom shape for the decorative background */
+        .auth-blob {
+            clip-path: circle(70% at 90% 10%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- TopAppBar - Implemented from JSON -->
+<header class="flex justify-between items-center px-margin-mobile h-16 w-full fixed top-0 z-50 bg-surface dark:bg-background border-b border-outline-variant dark:border-outline shadow-sm">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="A minimalist tech logo for a security application named SafeGuard, featuring a stylized abstract blue shield icon on a clean white circular background. The style is modern, professional, and corporate, utilizing the brand's primary deep blue and light mode surface colors." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBoQLCj0rmVmZ-HZm5HE2tU1_B6lnN_A4kijISS_H-_pt656x6PryQDm3hLKAqRGwEJ3blI5MOOJIN2k4yR5WnM1ajhMHLD88gbgqxJ4Bf-imyA4oct8ci8apnwCQQMZ_dvRtlTpPV2hlsd6uXnwWTbLFN5AWZjxyYB9TlCi5JjtKQob8O8DCEThnAyEpiKH87QKDFpFUcQwJ6flc9pcVATC1RtWYlAuofICLdOiLag5kxYVyYQyyWrJQNDvvq3cmlOmln5fHrwkXA"/>
+</div>
+<span class="font-headline-lg-mobile text-headline-lg-mobile font-bold text-primary dark:text-primary-fixed-dim">SafeGuard</span>
+</div>
+<button class="w-10 h-10 flex items-center justify-center rounded-full hover:bg-surface-container dark:hover:bg-surface-variant transition-colors duration-200">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim" data-icon="security">security</span>
+</button>
+</header>
+<!-- Main Content Canvas -->
+<main class="flex-grow pt-24 pb-20 px-margin-mobile flex flex-col items-center justify-center relative overflow-hidden">
+<!-- Background Decoration (Asymmetric/Modern) -->
+<div class="absolute top-0 right-0 w-full h-full pointer-events-none opacity-50 z-0 overflow-hidden">
+<div class="auth-blob absolute -top-24 -right-24 w-[500px] h-[500px] bg-secondary-container/20 rounded-full blur-3xl"></div>
+<div class="absolute bottom-24 -left-24 w-64 h-64 bg-primary-container/10 rounded-full blur-2xl"></div>
+</div>
+<div class="w-full max-w-lg z-10">
+<!-- Stepper Component -->
+<nav aria-label="Progress" class="flex items-center justify-between mb-stack-lg px-4">
+<ol class="flex items-center w-full">
+<!-- Step 1: Active -->
+<li class="flex flex-col items-center flex-1 relative">
+<div class="w-10 h-10 flex items-center justify-center rounded-full bg-primary-container text-on-primary-container font-bold shadow-md z-20">
+                            1
+                        </div>
+<span class="mt-2 font-label-md text-label-md text-primary font-bold">Welcome</span>
+<div class="absolute top-5 left-1/2 w-full h-0.5 bg-outline-variant z-10"></div>
+</li>
+<!-- Step 2: Inactive -->
+<li class="flex flex-col items-center flex-1 relative">
+<div class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant font-medium border border-outline-variant z-20">
+                            2
+                        </div>
+<span class="mt-2 font-label-md text-label-md text-on-surface-variant">Profile</span>
+<div class="absolute top-5 left-1/2 w-full h-0.5 bg-outline-variant z-10"></div>
+</li>
+<!-- Step 3: Inactive -->
+<li class="flex flex-col items-center flex-1 relative">
+<div class="w-10 h-10 flex items-center justify-center rounded-full bg-surface-container-high text-on-surface-variant font-medium border border-outline-variant z-20">
+                            3
+                        </div>
+<span class="mt-2 font-label-md text-label-md text-on-surface-variant">Secure</span>
+</li>
+</ol>
+</nav>
+<!-- Card: Step 1 Content -->
+<div class="bg-surface-container-lowest border border-outline-variant rounded-xl p-8 shadow-sm flex flex-col items-center text-center">
+<!-- Hero Illustration -->
+<div class="mb-stack-lg w-48 h-48 rounded-full bg-surface-container flex items-center justify-center relative">
+<!-- Subtle pulsing shadow effect -->
+<div class="absolute inset-0 rounded-full bg-primary/5 animate-pulse"></div>
+<div class="w-32 h-32 flex items-center justify-center bg-white rounded-full shadow-lg border border-outline-variant">
+<span class="material-symbols-outlined text-[80px] text-primary" data-icon="shield_person" style="font-variation-settings: 'FILL' 1;">shield_person</span>
+</div>
+<!-- Badge -->
+<div class="absolute bottom-2 right-2 w-12 h-12 bg-tertiary-container text-on-tertiary-container rounded-full flex items-center justify-center shadow-md border-2 border-white">
+<span class="material-symbols-outlined" data-icon="verified_user">verified_user</span>
+</div>
+</div>
+<!-- Text Content -->
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-stack-sm">
+                    Set up parental controls in 3 steps
+                </h1>
+<p class="font-body-md text-body-md text-on-surface-variant mb-stack-lg max-w-sm">
+                    SafeGuard provides a digital safety net for your family. We'll help you configure content filters, time limits, and real-time alerts to ensure a protected browsing experience.
+                </p>
+<!-- Status Banner Logic -->
+<div class="w-full bg-secondary-fixed text-on-secondary-fixed p-3 rounded-lg flex items-center gap-3 mb-stack-lg text-left">
+<span class="material-symbols-outlined shrink-0" data-icon="info">info</span>
+<span class="font-body-sm text-body-sm">Protecting over 2 million devices worldwide with military-grade encryption.</span>
+</div>
+<!-- Primary Action -->
+<button class="w-full py-4 bg-primary text-on-primary font-label-md text-label-md rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 flex items-center justify-center gap-2 group">
+<span>Get Started</span>
+<span class="material-symbols-outlined group-hover:translate-x-1 transition-transform" data-icon="arrow_forward">arrow_forward</span>
+</button>
+</div>
+</div>
+</main>
+<!-- BottomNavBar - Implemented from JSON (Filtered by relevance: suppress if transactional, but here it acts as a "Help/Footer") -->
+<!-- Applying "Help" as potentially active if the user is stuck, but technically first-load is Home -->
+<footer class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center h-20 px-4 pb-safe bg-surface dark:bg-background border-t border-outline-variant dark:border-outline shadow-lg md:hidden">
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-5 py-1 hover:bg-surface-container-high transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+<span class="font-label-md text-label-md">About</span>
+</a>
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-outline-variant px-5 py-1 hover:bg-surface-container-high transition-transform duration-150 active:scale-90" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-md text-label-md">Help</span>
+</a>
+</footer>
+<!-- Interactive Layer: Simple ripple or hover logic -->
+<script>
+        document.querySelectorAll('button').forEach(button => {
+            button.addEventListener('mousedown', function(e) {
+                let ripple = document.createElement('div');
+                ripple.classList.add('ripple');
+                this.appendChild(ripple);
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+    </script>
+</body></html>
