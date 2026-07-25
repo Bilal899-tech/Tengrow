@@ -7,7 +7,7 @@
   [![Build](https://img.shields.io/github/actions/workflow/status/Bilal899-tech/Tengrow/build.yml?branch=main&style=for-the-badge&label=BUILD&color=2EA44F)](https://github.com/Bilal899-tech/Tengrow/actions)
   [![License](https://img.shields.io/badge/LICENSE-MIT-2EA44F?style=for-the-badge)](LICENSE)
   [![Release](https://img.shields.io/github/v/release/Bilal899-tech/Tengrow?style=for-the-badge&label=RELEASE&color=2EA44F)](https://github.com/Bilal899-tech/Tengrow/releases/latest)
-  [![Download](https://img.shields.io/badge/DOWNLOAD-APK-2EA44F?style=for-the-badge&logo=android)](https://github.com/Bilal899-tech/Tengrow/actions/workflows/build.yml)
+  [![Download](https://img.shields.io/badge/DOWNLOAD-APK-2EA44F?style=for-the-badge&logo=android)](https://github.com/Bilal899-tech/Tengrow/releases/latest/download/app-debug.apk)
 
 </div>
 
@@ -44,11 +44,11 @@
 ## 📥 Download
 
 <p align="center">
-  <a href="https://github.com/Bilal899-tech/Tengrow/actions/workflows/build.yml">
+  <a href="https://github.com/Bilal899-tech/Tengrow/releases/latest/download/app-debug.apk">
     <img src="https://img.shields.io/badge/⬇%20Download%20APK-2EA44F?style=for-the-badge&logo=android&logoColor=white" alt="Download APK">
   </a>
   <br>
-  <sub>GitHub Actions • Latest build • Free & open-source</sub>
+  <sub>Direct download • Latest release • No sign-up required</sub>
 </p>
 
 **To install:** transfer the APK to your phone, open it, and allow installation from unknown sources.
