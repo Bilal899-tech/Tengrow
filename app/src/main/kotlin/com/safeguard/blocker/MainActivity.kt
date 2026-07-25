@@ -229,18 +229,20 @@ private class KeywordAdapter(
             textSize = 13f
             setCompoundDrawablesRelativeWithIntrinsicBounds(0, 0, android.R.drawable.ic_menu_close_clear_cancel, 0)
             compoundDrawablePadding = 8.dp
-            setOnClickListener {
-                val pos = tag as? Int ?: return@setOnClickListener
-                onDelete(getItem(pos))
-            }
             background = ContextCompat.getDrawable(context, R.drawable.circle_step_inactive)
         }
-        return VH(tv)
+        val vh = VH(tv)
+        tv.setOnClickListener {
+            val kw = tv.tag as? String
+            if (kw != null) onDelete(kw)
+        }
+        return vh
     }
 
     override fun onBindViewHolder(holder: VH, position: Int) {
-        holder.textView.text = getItem(position)
-        holder.textView.tag = position
+        val kw = getItem(position)
+        holder.textView.text = kw
+        holder.textView.tag = kw
     }
 
     companion object {

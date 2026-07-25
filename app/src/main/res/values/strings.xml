@@ -8,8 +8,8 @@
     <string name="password_desc">The Master Password is the key to all your encrypted data. Choose a strong one.</string>
     <string name="permissions_title">Almost Protected</string>
     <string name="permissions_desc">Enable the following critical permissions to activate real-time threat monitoring and uninstallation protection.</string>
-    <string name="accessibility_title">Accessibility Service</string>
-    <string name="accessibility_desc">Monitors keyboard input to block keywords and identifies malicious system interactions in real-time.</string>
+    <string name="accessibility_title">Content Filter Service</string>
+    <string name="accessibility_desc">Scans on-screen window content locally to enforce keyword blocking and protect against unauthorized setting changes. All processing stays on-device.</string>
     <string name="device_admin_title">Device Admin</string>
     <string name="device_admin_desc">Prevents uninstallation of Tengrow by unauthorized users, ensuring your device stays secure.</string>
     <string name="dashboard_status_active">All protections active</string>

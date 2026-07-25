@@ -10,6 +10,10 @@ import com.safeguard.blocker.databinding.ActivitySplashBinding
 class SplashActivity : AppCompatActivity() {
 
     private lateinit var b: ActivitySplashBinding
+    private val handler = Handler(Looper.getMainLooper())
+    private var hasNavigated = false
+    private var statusRunnable: Runnable? = null
+    private var fallbackRunnable: Runnable? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -22,28 +26,40 @@ class SplashActivity : AppCompatActivity() {
         )
 
         var index = 0
-        val handler = Handler(Looper.getMainLooper())
-        val runnable = object : Runnable {
+        statusRunnable = object : Runnable {
             override fun run() {
                 if (index < statuses.size) {
                     b.tvStatus.text = statuses[index]
                     index++
-                    handler.postDelayed(this, 800)
+                    handler.postDelayed(this, 700)
                 } else {
                     navigateAway()
                 }
             }
         }
-        handler.postDelayed(runnable, 600)
+        handler.postDelayed(statusRunnable!!, 500)
 
-        handler.postDelayed({ navigateAway() }, 3500)
+        fallbackRunnable = Runnable { navigateAway() }
+        handler.postDelayed(fallbackRunnable!!, 4200)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        statusRunnable?.let { handler.removeCallbacks(it) }
+        fallbackRunnable?.let { handler.removeCallbacks(it) }
     }
 
     private fun navigateAway() {
+        if (hasNavigated) return
+        hasNavigated = true
+        statusRunnable?.let { handler.removeCallbacks(it) }
+        fallbackRunnable?.let { handler.removeCallbacks(it) }
         val intent = if (PasswordManager.isSet(this)) {
             Intent(this, MainActivity::class.java)
         } else {
             Intent(this, SetupActivity::class.java)
+        }.apply {
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
         }
         startActivity(intent)
         overridePendingTransition(android.R.anim.fade_in, android.R.anim.fade_out)

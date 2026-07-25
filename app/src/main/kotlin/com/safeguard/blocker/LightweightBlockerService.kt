@@ -11,6 +11,7 @@ import android.view.accessibility.AccessibilityNodeInfo
 class LightweightBlockerService : AccessibilityService() {
 
     private val blockedKeywords = mutableListOf<String>()
+    private val handler = android.os.Handler(android.os.Looper.getMainLooper())
 
     override fun onCreate() {
         super.onCreate()
@@ -47,17 +48,19 @@ class LightweightBlockerService : AccessibilityService() {
             ) {
                 if (!AppSessionState.isValid()) {
                     performGlobalAction(GLOBAL_ACTION_HOME)
-                    val i = Intent(this, PasswordUnlockActivity::class.java).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                        putExtra("source", "settings_block")
-                    }
-                    startActivity(i)
+                    handler.postDelayed({
+                        val i = Intent(this, PasswordUnlockActivity::class.java).apply {
+                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                            putExtra("source", "settings_block")
+                        }
+                        startActivity(i)
+                    }, 250)
                     return
                 }
             }
         }
 
-        val text = event.text.joinToString(" ").lowercase()
+        val text = event.text?.joinToString(" ")?.lowercase() ?: ""
         if (text.isNotEmpty()) {
             for (kw in blockedKeywords) {
                 if (text.contains(kw)) {
@@ -67,11 +70,13 @@ class LightweightBlockerService : AccessibilityService() {
             }
         }
 
-        event.source?.let { root ->
+        val root = event.source
+        if (root != null) {
             try {
                 scanRecursive(root)
+            } catch (_: Exception) {
             } finally {
-                root.recycle()
+                runCatching { root.recycle() }
             }
         }
     }
@@ -88,26 +93,34 @@ class LightweightBlockerService : AccessibilityService() {
             }
         }
 
-        for (i in 0 until node.childCount) {
-            node.getChild(i)?.let { child ->
-                try {
-                    if (scanRecursive(child)) return true
-                } finally {
-                    child.recycle()
-                }
+        val count = node.childCount
+        for (i in 0 until count) {
+            val child = node.getChild(i) ?: continue
+            try {
+                if (scanRecursive(child)) return true
+            } catch (_: Exception) {
+            } finally {
+                runCatching { child.recycle() }
             }
         }
         return false
     }
 
     private fun triggerBlock() {
-        (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
-            .setPrimaryClip(ClipData.newPlainText("", ""))
+        runCatching {
+            (getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager)
+                .setPrimaryClip(ClipData.newPlainText("", ""))
+        }
         performGlobalAction(GLOBAL_ACTION_BACK)
-        performGlobalAction(GLOBAL_ACTION_BACK)
+        handler.postDelayed({ performGlobalAction(GLOBAL_ACTION_BACK) }, 100)
     }
 
     override fun onInterrupt() {}
+
+    override fun onDestroy() {
+        super.onDestroy()
+        handler.removeCallbacksAndMessages(null)
+    }
 
     fun addKeyword(kw: String) {
         val lower = kw.lowercase()
