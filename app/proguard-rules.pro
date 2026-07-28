@@ -1,1 +1,6 @@
--keep class com.safeguard.blocker.** { *; }
+-keep class com.safeguard.blocker.databinding.** { *; }
+-keep class com.safeguard.blocker.R$* { *; }
+-keepclassmembers class * extends android.app.Activity { public *; }
+-keepclassmembers class * extends android.app.Service { public *; }
+-keepclassmembers class * extends android.content.BroadcastReceiver { public *; }
+-keepclassmembers class * extends android.app.admin.DeviceAdminReceiver { public *; }

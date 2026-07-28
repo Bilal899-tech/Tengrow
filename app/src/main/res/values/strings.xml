@@ -54,4 +54,8 @@
     <string name="step_welcome">Welcome</string>
     <string name="step_security">Security</string>
     <string name="step_permissions">Permissions</string>
+    <string name="recovery_instruction">If you forgot your password, please request a recovery code by contacting Tengrow support. Enter the exact code received from support below.</string>
+    <string name="reset_password_title">Reset Your Password</string>
+    <string name="reset_password_desc">Choose a new strong master password. Recovery access is temporary; save the password in a secure place.</string>
+    <string name="support_desc">Need help? Contact our support team for assistance with setup, recovery, or any issues.</string>
 </resources>

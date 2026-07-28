@@ -35,6 +35,11 @@
             android:theme="@style/Theme.SafeGuard" />
 
         <activity
+            android:name=".TrustActivity"
+            android:exported="false"
+            android:theme="@style/Theme.SafeGuard" />
+
+        <activity
             android:name=".MainActivity"
             android:exported="false"
             android:launchMode="singleTask"
@@ -47,6 +52,12 @@
 
         <activity
             android:name=".PasswordUnlockActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:theme="@style/Theme.SafeGuard.Translucent" />
+
+        <activity
+            android:name=".RecoveryCodeVerifyActivity"
             android:excludeFromRecents="true"
             android:exported="false"
             android:theme="@style/Theme.SafeGuard.Translucent" />

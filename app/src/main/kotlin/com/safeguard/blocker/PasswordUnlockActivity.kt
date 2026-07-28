@@ -44,6 +44,12 @@ class PasswordUnlockActivity : AppCompatActivity() {
             b.btnUnlock.performClick()
             true
         }
+
+        b.tvForgotPassword.setOnClickListener {
+            startActivity(Intent(this, RecoveryCodeVerifyActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            })
+        }
     }
 
     override fun onBackPressed() {

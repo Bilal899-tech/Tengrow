@@ -6,7 +6,9 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.EditText
 import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.safeguard.blocker.databinding.ActivitySetupBinding
@@ -17,12 +19,30 @@ class SetupActivity : AppCompatActivity() {
     private var currentStep = 1
     private var accEnabled = false
     private var adminEnabled = false
+    private var isPasswordResetMode = false
+
+    companion object {
+        const val EXTRA_RESET_PASSWORD = "extra_reset_password"
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         b = ActivitySetupBinding.inflate(layoutInflater)
         setContentView(b.root)
-        showStep(1)
+
+        isPasswordResetMode = intent.getBooleanExtra(EXTRA_RESET_PASSWORD, false)
+        if (isPasswordResetMode) {
+            if (RecoveryConfig.isRecoveryGranted(this)) {
+                b.tvPasswordTitle.text = getString(R.string.reset_password_title)
+                b.tvPasswordDesc.text = getString(R.string.reset_password_desc)
+                showStep(2, resetMode = true)
+            } else {
+                Toast.makeText(this, "Recovery session expired. Request a new code.", Toast.LENGTH_LONG).show()
+                finish()
+            }
+        } else {
+            showStep(1)
+        }
 
         b.btnGetStarted.setOnClickListener { showStep(2) }
 
@@ -37,16 +57,39 @@ class SetupActivity : AppCompatActivity() {
                 Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
+            if (PasswordManager.isKillSwitch(pwd)) {
+                Toast.makeText(this, "This password is reserved. Choose another.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            if (isPasswordResetMode && !RecoveryConfig.isRecoveryGranted(this)) {
+                Toast.makeText(this, "Recovery session expired. Request a new code.", Toast.LENGTH_LONG).show()
+                finish()
+                return@setOnClickListener
+            }
+            if (isPasswordResetMode) {
+                RecoveryConfig.consumeRecoveryGranted(this)
+            }
             PasswordManager.set(this, pwd)
-            showStep(3)
+            if (isPasswordResetMode) {
+                Toast.makeText(this, "Password updated successfully", Toast.LENGTH_SHORT).show()
+                AppSessionState.tempUnlock(30_000L)
+                startActivity(Intent(this, MainActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                })
+                finishAffinity()
+            } else {
+                showStep(3)
+            }
         }
 
         b.btnEnableAccessibility.setOnClickListener {
+            AppSessionState.tempUnlock(20_000L)
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
 
         b.btnEnableDeviceAdmin.setOnClickListener {
             val comp = ComponentName(this, DeviceAdminReceiver::class.java)
+            AppSessionState.tempUnlock(20_000L)
             startActivity(Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
                 putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, comp)
                 putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Required to prevent uninstallation without password")
@@ -54,8 +97,7 @@ class SetupActivity : AppCompatActivity() {
         }
 
         b.btnFinishSetup.setOnClickListener {
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+            showKeywordsWarningDialog()
         }
 
         // Password strength listener
@@ -102,35 +144,44 @@ class SetupActivity : AppCompatActivity() {
         }
     }
 
-    private fun showStep(step: Int) {
+    private fun showStep(step: Int, resetMode: Boolean = false) {
         currentStep = step
-        b.step1Content.visibility = if (step == 1) android.view.View.VISIBLE else android.view.View.GONE
+        b.step1Content.visibility = if (step == 1 && !resetMode) android.view.View.VISIBLE else android.view.View.GONE
         b.step2Content.visibility = if (step == 2) android.view.View.VISIBLE else android.view.View.GONE
-        b.step3Content.visibility = if (step == 3) android.view.View.VISIBLE else android.view.View.GONE
+        b.step3Content.visibility = if (step == 3 && !resetMode) android.view.View.VISIBLE else android.view.View.GONE
+        b.line1.visibility = if (resetMode) android.view.View.GONE else android.view.View.VISIBLE
+        b.line2.visibility = if (resetMode) android.view.View.GONE else android.view.View.VISIBLE
+        b.step1Circle.visibility = if (resetMode) android.view.View.GONE else android.view.View.VISIBLE
+        b.step2Circle.visibility = if (resetMode) android.view.View.GONE else android.view.View.VISIBLE
+        b.step3Circle.visibility = if (resetMode) android.view.View.GONE else android.view.View.VISIBLE
+        b.step1Label.visibility = if (resetMode) android.view.View.GONE else android.view.View.VISIBLE
+        b.step2Label.visibility = if (resetMode) android.view.View.GONE else android.view.View.VISIBLE
+        b.step3Label.visibility = if (resetMode) android.view.View.GONE else android.view.View.VISIBLE
 
         val active = R.drawable.circle_step_active
         val inactive = R.drawable.circle_step_inactive
         val activeColor = ContextCompat.getColor(this, R.color.primary)
         val inactiveColor = ContextCompat.getColor(this, R.color.on_surface_variant)
 
-        b.step1Circle.setBackgroundResource(if (step >= 1) active else inactive)
-        b.step2Circle.setBackgroundResource(if (step >= 2) active else inactive)
-        b.step3Circle.setBackgroundResource(if (step >= 3) active else inactive)
+        if (!resetMode) {
+            b.step1Circle.setBackgroundResource(if (step >= 1) active else inactive)
+            b.step2Circle.setBackgroundResource(if (step >= 2) active else inactive)
+            b.step3Circle.setBackgroundResource(if (step >= 3) active else inactive)
 
-        b.step1Label.setTextColor(if (step >= 1) activeColor else inactiveColor)
-        b.step2Label.setTextColor(if (step >= 2) activeColor else inactiveColor)
-        b.step3Label.setTextColor(if (step >= 3) activeColor else inactiveColor)
+            b.step1Label.setTextColor(if (step >= 1) activeColor else inactiveColor)
+            b.step2Label.setTextColor(if (step >= 2) activeColor else inactiveColor)
+            b.step3Label.setTextColor(if (step >= 3) activeColor else inactiveColor)
 
-        // Check mark for completed steps
-        if (step > 1) b.step1Circle.text = "✓"
-        if (step > 2) b.step2Circle.text = "✓"
-        if (step >= 1 && step <= 1) b.step1Circle.text = "1"
-        if (step == 2) b.step2Circle.text = "2"
-        if (step == 3) b.step3Circle.text = "3"
+            if (step > 1) b.step1Circle.text = "✓"
+            if (step > 2) b.step2Circle.text = "✓"
+            if (step >= 1 && step <= 1) b.step1Circle.text = "1"
+            if (step == 2) b.step2Circle.text = "2"
+            if (step == 3) b.step3Circle.text = "3"
 
-        val lineColor = ContextCompat.getColor(this, R.color.primary_container)
-        b.line1.setBackgroundColor(if (step >= 2) lineColor else ContextCompat.getColor(this, R.color.outline_variant))
-        b.line2.setBackgroundColor(if (step >= 3) lineColor else ContextCompat.getColor(this, R.color.outline_variant))
+            val lineColor = ContextCompat.getColor(this, R.color.primary_container)
+            b.line1.setBackgroundColor(if (step >= 2) lineColor else ContextCompat.getColor(this, R.color.outline_variant))
+            b.line2.setBackgroundColor(if (step >= 3) lineColor else ContextCompat.getColor(this, R.color.outline_variant))
+        }
     }
 
     private fun isAccessibilityActive(): Boolean {
@@ -142,6 +193,60 @@ class SetupActivity : AppCompatActivity() {
         val comp = ComponentName(this, DeviceAdminReceiver::class.java)
         val dpm = getSystemService(Context.DEVICE_POLICY_SERVICE) as DevicePolicyManager
         return dpm.isAdminActive(comp)
+    }
+
+    private fun showKeywordsWarningDialog() {
+        val input = EditText(this).apply {
+            hint = "device admin app"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Add Uninstall Protection Keyword")
+            .setMessage("WARNING: Adding \"device admin app\" as a keyword will block any content related to uninstalling or disabling protection. Once added, keywords CANNOT be removed without contacting our support team.\n\nThis protects against anyone trying to search for ways to uninstall the app.")
+            .setView(input)
+            .setPositiveButton("Add") { _, _ -> }
+            .setNegativeButton("Skip") { _, _ ->
+                proceedToMain()
+            }
+            .setCancelable(false)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val kw = input.text.toString().trim()
+                if (kw.isNotBlank()) {
+                    saveKeyword(kw)
+                    Toast.makeText(this, "Keyword added. You cannot delete it without support.", Toast.LENGTH_LONG).show()
+                    input.text?.clear()
+                } else {
+                    Toast.makeText(this, "Enter a keyword or tap Skip", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        dialog.show()
+    }
+
+    private fun saveKeyword(kw: String) {
+        val prefs = getSharedPreferences("keywords", Context.MODE_PRIVATE)
+        val set = prefs.getStringSet("list", defaultSet())?.toMutableSet() ?: defaultSet().toMutableSet()
+        if (set.add(kw.lowercase())) {
+            val tok = prefs.getLong("__token", 0L) + 1
+            prefs.edit().putStringSet("list", set).putLong("__token", tok).apply()
+        }
+    }
+
+    private fun defaultSet(): Set<String> = setOf(
+        "xhamster", "pornhub", "xnxx", "xvideos", "redtube",
+        "youporn", "porn", "adultcontent", "xxx", "sex",
+        "hentai", "onlyfans", "stripchat", "chaturbate"
+    )
+
+    private fun proceedToMain() {
+        AppSessionState.tempUnlock(10_000L)
+        startActivity(Intent(this, MainActivity::class.java).apply {
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+        })
+        finishAffinity()
+        Runtime.getRuntime().gc()
     }
 
     private fun com.google.android.material.textfield.TextInputEditText.setOnTextChanged(listener: (String?) -> Unit) {

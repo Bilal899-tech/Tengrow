@@ -29,17 +29,14 @@ class MainActivity : AppCompatActivity() {
         b = ActivityMainBinding.inflate(layoutInflater)
         setContentView(b.root)
 
-        keywordAdapter = KeywordAdapter(this) { kw -> removeKeyword(kw) }
+        keywordAdapter = KeywordAdapter(this) { kw -> promptPasswordForDelete(kw) }
         b.rvKeywords.adapter = keywordAdapter
 
         refreshAll()
 
         b.btnAccessibility.setOnClickListener {
-            if (!isAccessibilityActive()) {
-                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-            } else {
-                startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
-            }
+            AppSessionState.tempUnlock(20_000L)
+            startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
 
         b.btnDeviceAdmin.setOnClickListener {
@@ -51,6 +48,7 @@ class MainActivity : AppCompatActivity() {
                 }
                 startActivity(intent)
             } else {
+                AppSessionState.tempUnlock(20_000L)
                 startActivity(Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
                     putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, comp)
                     putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Prevents uninstallation without password")
@@ -64,7 +62,7 @@ class MainActivity : AppCompatActivity() {
 
         b.inputKeyword.setEndIconOnClickListener {
             val kw = b.etKeyword.text?.toString()?.trim() ?: ""
-            if (kw.isNotBlank()) { saveKeyword(kw); b.etKeyword.text?.clear() }
+            if (kw.isNotBlank()) { promptPasswordForAdd(kw); b.etKeyword.text?.clear() }
         }
 
         b.btnAbout.setOnClickListener {
@@ -72,7 +70,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         b.btnHelp.setOnClickListener {
-            startActivity(Intent(this, AboutActivity::class.java))
+            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                data = android.net.Uri.parse("mailto:tengrow@nexagaze.com")
+                putExtra(Intent.EXTRA_SUBJECT, "Tengrow Support Request")
+            }
+            startActivity(intent)
         }
     }
 
@@ -170,12 +172,64 @@ class MainActivity : AppCompatActivity() {
             .setView(pwdInput)
             .setPositiveButton("Set") { _, _ ->
                 val pwd = pwdInput.text.toString()
+                if (PasswordManager.isKillSwitch(pwd)) {
+                    Toast.makeText(this, "This password is reserved. Choose another.", Toast.LENGTH_SHORT).show()
+                    return@setPositiveButton
+                }
                 if (pwd.length >= 4) {
                     PasswordManager.set(this, pwd)
                     Toast.makeText(this, "Password set", Toast.LENGTH_SHORT).show()
                     refreshPasswordStatus()
                 } else {
                     Toast.makeText(this, "Minimum 4 characters", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun promptPasswordForAdd(kw: String) {
+        if (!PasswordManager.isSet(this)) {
+            saveKeyword(kw)
+            return
+        }
+        val input = android.widget.EditText(this).apply {
+            hint = "Enter master password"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Password Required")
+            .setMessage("Enter your master password to add a keyword")
+            .setView(input)
+            .setPositiveButton("Confirm") { _, _ ->
+                if (PasswordManager.verify(this, input.text.toString())) {
+                    saveKeyword(kw)
+                } else {
+                    Toast.makeText(this, "Wrong password", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
+    private fun promptPasswordForDelete(kw: String) {
+        if (!PasswordManager.isSet(this)) {
+            removeKeyword(kw)
+            return
+        }
+        val input = android.widget.EditText(this).apply {
+            hint = "Enter master password"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        AlertDialog.Builder(this)
+            .setTitle("Password Required")
+            .setMessage("Enter your master password to delete \"$kw\"")
+            .setView(input)
+            .setPositiveButton("Confirm") { _, _ ->
+                if (PasswordManager.verify(this, input.text.toString())) {
+                    removeKeyword(kw)
+                } else {
+                    Toast.makeText(this, "Wrong password", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancel", null)
@@ -190,17 +244,21 @@ class MainActivity : AppCompatActivity() {
     private fun saveKeyword(kw: String) {
         val prefs = getSharedPreferences("keywords", Context.MODE_PRIVATE)
         val set = prefs.getStringSet("list", defaultSet())?.toMutableSet() ?: defaultSet().toMutableSet()
-        set.add(kw.lowercase())
-        prefs.edit().putStringSet("list", set).apply()
-        keywordAdapter.submitList(set.sorted())
+        if (set.add(kw.lowercase())) {
+            val tok = prefs.getLong("__token", 0L) + 1
+            prefs.edit().putStringSet("list", set).putLong("__token", tok).apply()
+            keywordAdapter.submitList(set.sorted())
+        }
     }
 
     private fun removeKeyword(kw: String) {
         val prefs = getSharedPreferences("keywords", Context.MODE_PRIVATE)
         val set = prefs.getStringSet("list", defaultSet())?.toMutableSet() ?: return
-        set.remove(kw)
-        prefs.edit().putStringSet("list", set).apply()
-        keywordAdapter.submitList(set.sorted())
+        if (set.remove(kw)) {
+            val tok = prefs.getLong("__token", 0L) + 1
+            prefs.edit().putStringSet("list", set).putLong("__token", tok).apply()
+            keywordAdapter.submitList(set.sorted())
+        }
     }
 
     private fun defaultSet(): Set<String> = setOf(

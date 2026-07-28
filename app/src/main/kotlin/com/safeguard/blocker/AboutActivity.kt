@@ -1,5 +1,6 @@
 package com.safeguard.blocker
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -22,6 +23,14 @@ class AboutActivity : AppCompatActivity() {
 
         b.tvFaq2.setOnClickListener {
             b.tvFaq2Ans.visibility = if (b.tvFaq2Ans.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+        }
+
+        b.tvSupportEmail.setOnClickListener {
+            val intent = Intent(Intent.ACTION_SENDTO).apply {
+                data = android.net.Uri.parse("mailto:tengrow@nexagaze.com")
+                putExtra(Intent.EXTRA_SUBJECT, "Tengrow Support Request")
+            }
+            startActivity(intent)
         }
     }
 }
