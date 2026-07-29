@@ -88,6 +88,57 @@ If you want the absolute latest code (not yet released), grab the artifact from 
 
 ---
 
+## 📸 Reference Images
+
+<p align="center">
+  <strong>1</strong><br>
+  <img src="images/1.jpg" width="300">
+</p>
+
+<p align="center">
+  <strong>2</strong><br>
+  <img src="images/2.png" width="300">
+</p>
+
+<p align="center">
+  <strong>3</strong><br>
+  <img src="images/3.jpg" width="300">
+</p>
+
+<p align="center">
+  <strong>4</strong><br>
+  <img src="images/4.jpg" width="300">
+</p>
+
+<p align="center">
+  <strong>5</strong><br>
+  <img src="images/5.jpg" width="300">
+</p>
+
+<p align="center">
+  <strong>6</strong><br>
+  <img src="images/6.jpg" width="300">
+</p>
+
+<p align="center">
+  <strong>7</strong><br>
+  <img src="images/7.jpg" width="300">
+</p>
+
+<p align="center">
+  <strong>8</strong><br>
+  <img src="images/8.png" width="300">
+</p>
+
+<p align="center">
+  <strong>9</strong><br>
+  <img src="images/9.png" width="300">
+</p>
+
+*These reference images are for documentation only and are not included in the APK build.*
+
+---
+
 ## 🔧 First-Time Setup
 
 1. Open **Tengrow**
