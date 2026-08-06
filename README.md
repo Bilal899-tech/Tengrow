@@ -41,8 +41,7 @@
 
 ---
 
-## 📥 Download lP4VJI2mqS7qwPP2IZnL
-<!-- random lP4VJI2mqS7qwPP2IZnL -->
+## 📥 Download
 <p align="center">
   <a href="https://github.com/Bilal899-tech/Tengrow/releases/latest/download/app-debug.apk">
     <img src="https://img.shields.io/badge/⬇%20Download%20APK-2EA44F?style=for-the-badge&logo=android&logoColor=white" alt="Download APK">

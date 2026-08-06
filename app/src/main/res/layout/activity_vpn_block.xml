@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/error"
+    android:keepScreenOn="true">
+
+    <TextView
+        android:id="@+id/tvVpnBlockTitle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginTop="96dp"
+        android:gravity="center"
+        android:text="@string/vpn_block_title"
+        android:textColor="@color/on_error"
+        android:textSize="30sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <TextView
+        android:id="@+id/tvVpnBlockMessage"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="32dp"
+        android:layout_marginTop="20dp"
+        android:gravity="center"
+        android:text="@string/vpn_block_message"
+        android:textColor="@color/on_error"
+        android:textSize="16sp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvVpnBlockTitle" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnVpnBlockClose"
+        android:layout_width="wrap_content"
+        android:layout_height="52dp"
+        android:layout_marginTop="40dp"
+        android:backgroundTint="@color/on_error"
+        android:text="@string/vpn_block_close"
+        android:textColor="@color/error"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        app:cornerRadius="26dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/tvVpnBlockMessage" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -66,10 +66,13 @@ class SplashActivity : AppCompatActivity() {
             hasNavigated = true
             statusRunnable?.let { handler.removeCallbacks(it) }
             fallbackRunnable?.let { handler.removeCallbacks(it) }
-            val target = if (!PasswordManager.isSet(this)) {
-                Intent(this, SetupActivity::class.java)
-            } else {
-                Intent(this, MainActivity::class.java)
+            val target = when {
+                PanicLockdown.isActive(this) ->
+                    Intent(this, PanicAlertActivity::class.java)
+                !PasswordManager.isSet(this) ->
+                    Intent(this, SetupActivity::class.java)
+                else ->
+                    Intent(this, MainActivity::class.java)
             }.apply {
                 addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             }

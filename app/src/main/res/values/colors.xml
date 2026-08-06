@@ -43,4 +43,7 @@
 
     <color name="status_active">#4CAF50</color>
     <color name="status_inactive">#F44336</color>
+
+    <color name="shame_bg">#2B0000</color>
+    <color name="shame_red">#FF3B3B</color>
 </resources>

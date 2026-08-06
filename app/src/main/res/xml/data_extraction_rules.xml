@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<data-extraction-rules xmlns:android="http://schemas.android.com/apk/android">
+<data-extraction-rules>
     <cloud-backup>
         <exclude domain="root" />
     </cloud-backup>

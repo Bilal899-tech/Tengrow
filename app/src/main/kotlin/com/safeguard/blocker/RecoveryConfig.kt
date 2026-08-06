@@ -5,13 +5,13 @@ import java.security.MessageDigest
 
 object RecoveryConfig {
 
-    private val BACKUP_CODE_HASH = hashRaw("lP4VJI2mqS7qwPP2IZnL")
+    private val BACKUP_CODE_HASH = "3cb1ce1abd1abb8e61d6ad9716ca83185a6aaffa8246e3a557010aa1c0eeb0d4"
     private const val CONTACT_EMAIL = "tengrow@nexagaze.com"
     private const val PREFS = "safeguard_vault"
     private const val KEY_RECOVERY_GRANTED = "recovery_granted_until_ms"
     private const val KEY_FAIL_COUNT = "recovery_fail_count"
     private const val KEY_FAIL_RESET = "recovery_fail_reset_at"
-    private const val MAX_ATTEMPTS = 3
+    private const val MAX_ATTEMPTS = 5
     private const val LOCKOUT_MS = 60_000L
 
     fun instruction(): String =
@@ -24,7 +24,6 @@ object RecoveryConfig {
         if (clean.length < 12) return false
         return hashRaw(clean) == BACKUP_CODE_HASH
     }
-
     fun isRateLimited(ctx: Context): Boolean {
         val prefs = ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
         val resetAt = prefs.getLong(KEY_FAIL_RESET, 0L)
@@ -56,7 +55,7 @@ object RecoveryConfig {
     }
 
     fun markRecoveryGranted(ctx: Context) {
-        val until = System.currentTimeMillis() + 90_000L
+        val until = System.currentTimeMillis() + 300_000L
         ctx.getSharedPreferences(PREFS, Context.MODE_PRIVATE).edit()
             .putLong(KEY_RECOVERY_GRANTED, until)
             .apply()

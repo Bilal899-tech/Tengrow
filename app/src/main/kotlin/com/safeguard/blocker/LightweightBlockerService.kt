@@ -13,11 +13,16 @@ class LightweightBlockerService : AccessibilityService() {
     private val handler = android.os.Handler(android.os.Looper.getMainLooper())
     @Volatile private var lastSettingsBlockMs = 0L
     @Volatile private var lastContentBlockMs = 0L
+    @Volatile private var lastPanicFireMs = 0L
+    private val detectionTimes = ArrayList<Long>()
+    private val lastBlockByKeyword = HashMap<String, Long>()
     private var keywordsToken = 0L
     private var cachedKeywords = emptyList<String>()
     private val emptyKeywords = emptyList<String>()
     @Volatile private var lastBrowserScanMs = 0L
+    @Volatile private var lastUninstallBlockMs = 0L
     @Volatile private var lastScanHash = 0
+    @Volatile private var serviceEnabledAtMs = 0L
     private val browserPackages = setOf(
         "com.android.chrome", "org.chromium.chrome",
         "org.mozilla.firefox", "org.mozilla.fennec_fdroid",
@@ -26,12 +31,19 @@ class LightweightBlockerService : AccessibilityService() {
         "com.duckduckgo.mobile.android", "com.vivaldi.browser",
         "com.UCMobile.intl", "samsung.android.app.sbrowser",
         "com.microsoft.bing", "com.google.android.apps.chrome",
-        "com.chrome.canary", "com.chrome.beta", "com.chrome.dev"
+        "com.chrome.canary", "com.chrome.beta", "com.chrome.dev",
+        "com.android.browser", "com.microsoft.edge", "com.sec.android.app.sbrowser",
+        "com.kiwibrowser.browser", "mark.via", "org.mozilla.firefox_beta"
     )
 
     override fun onCreate() {
         super.onCreate()
         bootstrapKeywordsIfNeeded()
+    }
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        serviceEnabledAtMs = System.currentTimeMillis()
     }
 
     private fun bootstrapKeywordsIfNeeded() {
@@ -68,11 +80,11 @@ class LightweightBlockerService : AccessibilityService() {
     }
 
     private fun addKeywordInternal(kw: String) {
-        val lower = kw.lowercase()
-        if (lower.isNotBlank()) {
+        val normalized = KeywordNormalizer.normalize(kw)
+        if (normalized.isNotBlank()) {
             val prefs = getSharedPreferences("keywords", Context.MODE_PRIVATE)
             val set = (prefs.getStringSet("list", null) ?: defaultSet()).toMutableSet()
-            if (set.add(lower)) {
+            if (set.add(normalized)) {
                 prefs.edit().putStringSet("list", set).apply()
                 touchKeywordsPrefs()
             }
@@ -82,7 +94,7 @@ class LightweightBlockerService : AccessibilityService() {
     private fun removeKeywordInternal(kw: String) {
         val prefs = getSharedPreferences("keywords", Context.MODE_PRIVATE)
         val set = (prefs.getStringSet("list", null) ?: defaultSet()).toMutableSet()
-        if (set.remove(kw.lowercase())) {
+        if (set.remove(KeywordNormalizer.normalize(kw))) {
             prefs.edit().putStringSet("list", set).apply()
             touchKeywordsPrefs()
         }
@@ -96,88 +108,29 @@ class LightweightBlockerService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         val pkg = event.packageName?.toString() ?: ""
-        val cls = event.className?.toString() ?: ""
 
         if (pkg == packageName) return
         if (pkg.isEmpty()) return
 
-        if (pkg == "com.android.settings") {
-            val c = cls
-            if (c.endsWith(".InstalledAppDetails") ||
-                c.endsWith(".ApplicationInfo") ||
-                c.endsWith(".ManageApplications") ||
-                c.endsWith(".AccessibilitySettings") ||
-                c.endsWith(".DeviceAdminSettings") ||
-                c.endsWith(".SecuritySettings") ||
-                c.endsWith(".UninstallerActivity") ||
-                c.endsWith(".UninstallActivity") ||
-                c.endsWith(".UninstallFragment") ||
-                c.endsWith(".ConfirmDeviceAdminRemove") ||
-                c.endsWith(".AppDashboardFragmentBase") ||
-                c.contains("AppDashboard") ||
-                c.contains("Uninstall") ||
-                c.contains("RemoveAdmin") ||
-                c == "com.android.settings.InstalledAppDetails" ||
-                c == "com.android.settings.applications.InstalledAppDetailsTopLevelActivity" ||
-                c == "com.android.settings.Settings\$AccessibilitySettingsActivity" ||
-                c == "com.android.settings.Settings\$DeviceAdminSettingsActivity" ||
-                c == "com.android.settings.Settings\$SecuritySettingsActivity" ||
-                c == "com.android.settings.applications.appinfo.AppInfoDashboardFragment" ||
-                c == "com.android.settings.Settings\$ManageApplicationsActivity"
-            ) {
-                if (!AppSessionState.isValid()) {
-                    val now = System.currentTimeMillis()
-                    if (now - lastSettingsBlockMs < SETTINGS_BLOCK_COOLDOWN_MS) return
-                    lastSettingsBlockMs = now
-                    performGlobalAction(GLOBAL_ACTION_HOME)
-                    handler.postDelayed({
-                        if (!AppSessionState.isValid()) {
-                            val i = Intent(this, PasswordUnlockActivity::class.java).apply {
-                                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
-                                putExtra("source", "settings_block")
-                            }
-                            startActivity(i)
-                        }
-                    }, 250)
-                    return
-                }
-            }
-        }
+        val passwordSet = PasswordManager.isSet(this)
+        val source = event.source
 
-        if (!AppSessionState.isValid()) {
-            val now = System.currentTimeMillis()
-            if (now - lastSettingsBlockMs >= SETTINGS_BLOCK_COOLDOWN_MS) {
-                val c = cls
-                if (pkg.startsWith("com.android.settings") ||
-                    pkg == "com.google.android.packageinstaller" ||
-                    pkg == "com.android.packageinstaller" ||
-                    pkg == "com.android.vending" ||
-                    pkg == "com.miui.securitycenter" ||
-                    pkg == "com.samsung.android.packageinstaller" ||
-                    pkg == "com.oplus.appdetail" ||
-                    pkg == "com.coloros.filemanager" ||
-                    pkg == "com.vivo.appstore"
-                ) {
-                    var uninstallForUs = false
+        try {
+            if (passwordSet && !AppSessionState.isValid() && interceptUninstallRemoval(pkg, source, event)) {
+                return
+            }
+
+            if (passwordSet && !AppSessionState.isValid() && isSensitivePackage(pkg)) {
+                val now = System.currentTimeMillis()
+                if (now - lastSettingsBlockMs >= SETTINGS_BLOCK_COOLDOWN_MS) {
+                    var mentionsUs = false
                     val txtAll = (event.text?.joinToString(" ") ?: "").lowercase()
-                    if (txtAll.contains("tengrow") || txtAll.contains(packageName.lowercase())) {
-                        uninstallForUs = true
+                    if (mentionsUs(txtAll)) mentionsUs = true
+                    if (!mentionsUs && source != null) {
+                        val combined = gatherNodeText(source, 10)
+                        if (mentionsUs(combined)) mentionsUs = true
                     }
-                    if (!uninstallForUs) {
-                        val root = event.source
-                        if (root != null) {
-                            try {
-                                val combined = gatherNodeText(root, 8)
-                                if (combined.contains("tengrow") || combined.contains(packageName.lowercase())) {
-                                    uninstallForUs = true
-                                }
-                            } catch (_: Exception) {
-                            } finally {
-                                runCatching { root.recycle() }
-                            }
-                        }
-                    }
-                    if (uninstallForUs) {
+                    if (mentionsUs) {
                         lastSettingsBlockMs = now
                         performGlobalAction(GLOBAL_ACTION_HOME)
                         handler.postDelayed({
@@ -188,54 +141,92 @@ class LightweightBlockerService : AccessibilityService() {
                                 }
                                 startActivity(i)
                             }
-                        }, 250)
+                        }, 150)
                         return
                     }
                 }
             }
-        }
 
-        val kws = currentKeywords()
-        if (kws.isEmpty()) return
+            val kws = currentKeywords()
+            if (kws.isEmpty()) return
 
-        val isBrowser = pkg in browserPackages
-        val etype = event.eventType
+            val isBrowser = pkg in browserPackages
+            val etype = event.eventType
 
-        if (isBrowser) {
-            when (etype) {
-                AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED,
-                AccessibilityEvent.TYPE_VIEW_FOCUSED -> return
+            if (isBrowser) {
+                if (etype == AccessibilityEvent.TYPE_VIEW_FOCUSED) return
+                // Typed URL/address-bar text is the strongest signal of a bad
+                // habit — scan it immediately instead of skipping it.
+                val urlTyping = etype == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
+                if (!urlTyping) {
+                    val now = System.currentTimeMillis()
+                    if (now - lastBrowserScanMs < BROWSER_SCAN_COOLDOWN_MS) return
+                    lastBrowserScanMs = now
+                }
             }
-            val now = System.currentTimeMillis()
-            if (now - lastBrowserScanMs < BROWSER_SCAN_COOLDOWN_MS) return
-            lastBrowserScanMs = now
-        }
 
-        var combinedText = event.text?.joinToString(" ")?.lowercase() ?: ""
-        val root = event.source
-        if (root != null) {
-            try {
-                val nodeText = gatherNodeText(root, if (isBrowser) 10 else 22)
+            var combinedText = event.text?.joinToString(" ") ?: ""
+            if (source != null) {
+                val nodeText = gatherNodeText(source, if (isBrowser) 10 else 22)
                 if (nodeText.isNotEmpty()) {
                     combinedText = if (combinedText.isEmpty()) nodeText else "$combinedText $nodeText"
                 }
-            } catch (_: Exception) {
-            } finally {
-                runCatching { root.recycle() }
             }
-        }
-        if (combinedText.isEmpty()) return
+            if (combinedText.isEmpty()) return
+            val normalizedText = KeywordNormalizer.normalize(combinedText)
+            if (normalizedText.isEmpty()) return
 
-        val h = combinedText.hashCode()
-        if (h == lastScanHash) return
-        lastScanHash = h
+            val h = normalizedText.hashCode()
+            if (h == lastScanHash) return
+            lastScanHash = h
 
-        for (kw in kws) {
-            if (combinedText.contains(kw)) {
-                triggerBlock()
-                return
+            val typed = etype == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
+            for (kw in kws) {
+                if (keywordHits(normalizedText, kw, typed)) {
+                    triggerBlock(kw)
+                    return
+                }
             }
+        } finally {
+            runCatching { source?.recycle() }
         }
+    }
+
+    private fun isSensitivePackage(pkg: String): Boolean =
+        pkg.startsWith("com.android.settings") ||
+            pkg == "com.google.android.packageinstaller" ||
+            pkg == "com.android.packageinstaller" ||
+            pkg == "com.android.vending" ||
+            pkg == "com.miui.securitycenter" ||
+            pkg == "com.samsung.android.packageinstaller" ||
+            pkg == "com.oplus.appdetail" ||
+            pkg == "com.coloros.filemanager" ||
+            pkg == "com.vivo.appstore"
+
+    private fun mentionsUs(text: String): Boolean =
+        text.contains("tengrow") || text.contains(packageName.lowercase())
+
+    /**
+     * Whole-word keyword match with a false-positive guard.
+     *
+     * Generic single words ("sex", "xxx", "porn", ...) only fire when the
+     * event is the USER TYPING (search bar, address bar, chat input) — so a
+     * normal conversation/response that merely contains the word in a large
+     * text blob never triggers a block. Specific names (pornhub, xnxx, ...)
+     * and multi-word phrases always match.
+     */
+    private fun keywordHits(text: String, kw: String, typed: Boolean): Boolean {
+        if (kw in WEAK_SEARCH_ONLY && !typed) return false
+        return if (kw.indexOf(' ') >= 0) {
+            text.contains(kw)
+        } else {
+            text.matchesWord(kw)
+        }
+    }
+
+    private fun String.matchesWord(kw: String): Boolean {
+        val q = java.util.regex.Pattern.quote(kw)
+        return contains(Regex("(^|[^a-z0-9])$q($|[^a-z0-9])"))
     }
 
     private fun gatherNodeText(node: AccessibilityNodeInfo, maxDepth: Int, depth: Int = 0): String {
@@ -259,8 +250,72 @@ class LightweightBlockerService : AccessibilityService() {
         return sb.toString()
     }
 
-    private fun triggerBlock() {
+    /**
+     * Strict uninstall protection: presses Cancel on any removal dialog that
+     * mentions this app, bounces the user home and requires a master-password
+     * session. Returns true when the screen has been handled.
+     */
+    private fun interceptUninstallRemoval(
+        pkg: String,
+        source: AccessibilityNodeInfo?,
+        event: AccessibilityEvent
+    ): Boolean {
+        if (!UninstallProtection.isEnabled(this)) return false
+        if (!UninstallProtection.isRemovalScreen(pkg)) return false
         val now = System.currentTimeMillis()
+        if (now - lastUninstallBlockMs < UNINSTALL_BLOCK_COOLDOWN_MS) return true
+
+        val text = StringBuilder(event.text?.joinToString(" ") ?: "")
+        if (source != null) {
+            val nodeText = gatherNodeText(source, 12)
+            if (nodeText.isNotEmpty()) text.append(' ').append(nodeText)
+        }
+        val t = text.toString()
+        if (!UninstallProtection.mentionsOurApp(t, this)) return false
+        if (!UninstallProtection.mentionsRemoval(t)) return false
+
+        lastUninstallBlockMs = now
+        cancelRemovalDialog(source)
+        performGlobalAction(GLOBAL_ACTION_HOME)
+        handler.postDelayed({
+            if (!AppSessionState.isValid()) {
+                val i = Intent(this, PasswordUnlockActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+                    putExtra("source", "uninstall_block")
+                }
+                runCatching { startActivity(i) }
+            }
+        }, 150)
+        return true
+    }
+
+    /** Finds and presses the "Cancel/Keep" button that defeats the removal. */
+    private fun cancelRemovalDialog(node: AccessibilityNodeInfo?): Boolean {
+        if (node == null) return false
+        val label = node.text?.toString()
+        if (label != null && UninstallProtection.isCancelControl(label)) {
+            if (runCatching { node.performAction(AccessibilityNodeInfo.ACTION_CLICK) }.getOrDefault(false)) {
+                return true
+            }
+        }
+        val count = node.childCount
+        for (i in 0 until count) {
+            val child = runCatching { node.getChild(i) }.getOrNull() ?: continue
+            if (cancelRemovalDialog(child)) {
+                runCatching { child.recycle() }
+                return true
+            }
+            runCatching { child.recycle() }
+        }
+        return false
+    }
+
+    private fun triggerBlock(kw: String) {
+        val now = System.currentTimeMillis()
+        val lastForKeyword = lastBlockByKeyword[kw] ?: 0L
+        if (now - lastForKeyword < KEYWORD_REPEAT_COOLDOWN_MS) return
+        lastBlockByKeyword[kw] = now
+        if (lastBlockByKeyword.size > 256) lastBlockByKeyword.clear()
         if (now - lastContentBlockMs < CONTENT_BLOCK_COOLDOWN_MS) return
         lastContentBlockMs = now
         runCatching {
@@ -268,6 +323,54 @@ class LightweightBlockerService : AccessibilityService() {
                 .setPrimaryClip(ClipData.newPlainText("", ""))
         }
         performGlobalAction(GLOBAL_ACTION_HOME)
+        // Passive shame alert: red line + cursive, shameful message telling the
+        // user they are trying to involve themselves in bad habits.
+        handler.postDelayed({
+            runCatching { ShameAlertActivity.show(this) }
+        }, 160)
+        trackDetection(now)
+    }
+
+    private fun trackDetection(now: Long) {
+        if (!PanicConfig.isEnabled(this)) return
+        if (now - lastPanicFireMs < PANIC_COOLDOWN_MS) return
+        detectionTimes.add(now)
+        val windowMs = PanicConfig.windowMs(this)
+        while (detectionTimes.isNotEmpty() && now - detectionTimes.first() > windowMs) {
+            detectionTimes.removeAt(0)
+        }
+        if (detectionTimes.size >= PanicConfig.triggerCount(this)) {
+            lastPanicFireMs = now
+            detectionTimes.clear()
+            // Auto cool-down: multiple addiction detections in the window
+            // immediately start the strict, persistent 5-minute timer.
+            PanicLockdown.start(this, PanicConfig.lockdownMs(this))
+            runCatching {
+                val i = Intent(this, PanicAlertActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
+                startActivity(i)
+            }
+        }
+    }
+
+    override fun onUnbind(intent: android.content.Intent?): Boolean {
+        // Aggressive disable detection: the user turned the blocker off in
+        // Accessibility settings. Unless the owner has an active unlocked
+        // session, the strict cool-down timer starts immediately.
+        val now = System.currentTimeMillis()
+        if (now - serviceEnabledAtMs > MIN_ENABLED_BEFORE_GUARD_MS &&
+            !AppSessionState.isValid()
+        ) {
+            PanicLockdown.start(this, PanicConfig.lockdownMs(this))
+            runCatching {
+                val i = Intent(this, PanicAlertActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                }
+                startActivity(i)
+            }
+        }
+        return super.onUnbind(intent)
     }
 
     override fun onInterrupt() {}
@@ -282,8 +385,15 @@ class LightweightBlockerService : AccessibilityService() {
     fun getKeywords(): List<String> = currentKeywords().toList()
 
     companion object {
-        private const val SETTINGS_BLOCK_COOLDOWN_MS = 2500L
+        private const val SETTINGS_BLOCK_COOLDOWN_MS = 1000L
         private const val CONTENT_BLOCK_COOLDOWN_MS = 700L
         private const val BROWSER_SCAN_COOLDOWN_MS = 1800L
+        private const val UNINSTALL_BLOCK_COOLDOWN_MS = 900L
+        private const val PANIC_COOLDOWN_MS = 60_000L
+        private const val KEYWORD_REPEAT_COOLDOWN_MS = 3 * 60_000L
+        private const val MIN_ENABLED_BEFORE_GUARD_MS = 60_000L
+
+        /** Generic words that only block while the user is actively typing. */
+        private val WEAK_SEARCH_ONLY = setOf("sex", "xxx", "porn", "adult", "adultcontent")
     }
 }

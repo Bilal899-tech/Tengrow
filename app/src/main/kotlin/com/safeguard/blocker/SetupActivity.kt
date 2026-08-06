@@ -83,13 +83,13 @@ class SetupActivity : AppCompatActivity() {
         }
 
         b.btnEnableAccessibility.setOnClickListener {
-            AppSessionState.tempUnlock(20_000L)
+            AppSessionState.tempUnlock(300_000L)
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
 
         b.btnEnableDeviceAdmin.setOnClickListener {
             val comp = ComponentName(this, DeviceAdminReceiver::class.java)
-            AppSessionState.tempUnlock(20_000L)
+            AppSessionState.tempUnlock(300_000L)
             startActivity(Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
                 putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, comp)
                 putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "Required to prevent uninstallation without password")
@@ -216,7 +216,8 @@ class SetupActivity : AppCompatActivity() {
                 if (kw.isNotBlank()) {
                     saveKeyword(kw)
                     Toast.makeText(this, "Keyword added. You cannot delete it without support.", Toast.LENGTH_LONG).show()
-                    input.text?.clear()
+                    dialog.dismiss()
+                    proceedToMain()
                 } else {
                     Toast.makeText(this, "Enter a keyword or tap Skip", Toast.LENGTH_SHORT).show()
                 }
@@ -226,9 +227,11 @@ class SetupActivity : AppCompatActivity() {
     }
 
     private fun saveKeyword(kw: String) {
+        val normalized = KeywordNormalizer.normalize(kw)
+        if (normalized.isEmpty()) return
         val prefs = getSharedPreferences("keywords", Context.MODE_PRIVATE)
         val set = prefs.getStringSet("list", defaultSet())?.toMutableSet() ?: defaultSet().toMutableSet()
-        if (set.add(kw.lowercase())) {
+        if (set.add(normalized)) {
             val tok = prefs.getLong("__token", 0L) + 1
             prefs.edit().putStringSet("list", set).putLong("__token", tok).apply()
         }
@@ -241,7 +244,7 @@ class SetupActivity : AppCompatActivity() {
     )
 
     private fun proceedToMain() {
-        AppSessionState.tempUnlock(10_000L)
+        AppSessionState.tempUnlock(60_000L)
         startActivity(Intent(this, MainActivity::class.java).apply {
             addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
         })

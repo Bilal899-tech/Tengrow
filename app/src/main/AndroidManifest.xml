@@ -6,6 +6,16 @@
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE" />
     <uses-permission android:name="android.permission.BIND_DEVICE_ADMIN" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS" />
+    <uses-permission android:name="android.permission.VIBRATE" />
+
+    <!-- Anti-VPN module -->
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission
+        android:name="android.permission.QUERY_ALL_PACKAGES"
+        tools:ignore="QueryAllPackagesPermission" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <application
         android:allowBackup="false"
@@ -35,11 +45,6 @@
             android:theme="@style/Theme.SafeGuard" />
 
         <activity
-            android:name=".TrustActivity"
-            android:exported="false"
-            android:theme="@style/Theme.SafeGuard" />
-
-        <activity
             android:name=".MainActivity"
             android:exported="false"
             android:launchMode="singleTask"
@@ -62,6 +67,31 @@
             android:exported="false"
             android:theme="@style/Theme.SafeGuard.Translucent" />
 
+        <activity
+            android:name=".PanicAlertActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:noHistory="true"
+            android:theme="@style/Theme.SafeGuard"
+            android:windowSoftInputMode="stateAlwaysHidden" />
+
+        <activity
+            android:name=".VpnBlockActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:noHistory="true"
+            android:theme="@style/Theme.SafeGuard" />
+
+        <activity
+            android:name=".ShameAlertActivity"
+            android:excludeFromRecents="true"
+            android:exported="false"
+            android:launchMode="singleInstance"
+            android:noHistory="true"
+            android:theme="@style/Theme.SafeGuard" />
+
         <service
             android:name=".LightweightBlockerService"
             android:exported="true"
@@ -73,6 +103,35 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
+
+        <service
+            android:name=".VpnBlockerService"
+            android:exported="true"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/accessibility_service_vpn_config" />
+        </service>
+
+        <service
+            android:name=".VpnMonitorService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="vpn_policy_monitoring" />
+        </service>
+
+        <receiver
+            android:name=".VpnDetector$VpnStateReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.safeguard.blocker.action.VPN_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
 
         <receiver
             android:name=".BootReceiver"

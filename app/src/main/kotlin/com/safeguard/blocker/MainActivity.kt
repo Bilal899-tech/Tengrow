@@ -23,9 +23,22 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var b: ActivityMainBinding
     private lateinit var keywordAdapter: KeywordAdapter
+    private var panicFieldsInitialized = false
+    private var ignoreUninstallSwitch = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Strict cool-down gate: while the timer runs, the dashboard cannot
+        // be opened at all — only the lockout screen is reachable.
+        if (PanicLockdown.isActive(this)) {
+            startActivity(Intent(this, PanicAlertActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            })
+            finish()
+            return
+        }
+
         b = ActivityMainBinding.inflate(layoutInflater)
         setContentView(b.root)
 
@@ -35,7 +48,7 @@ class MainActivity : AppCompatActivity() {
         refreshAll()
 
         b.btnAccessibility.setOnClickListener {
-            AppSessionState.tempUnlock(20_000L)
+            AppSessionState.tempUnlock(120_000L)
             startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS))
         }
 
@@ -45,6 +58,7 @@ class MainActivity : AppCompatActivity() {
             if (dpm.isAdminActive(comp)) {
                 val intent = Intent(this, PasswordUnlockActivity::class.java).apply {
                     putExtra("source", "dashboard")
+                    putExtra("action", "deactivate_admin")
                 }
                 startActivity(intent)
             } else {
@@ -76,6 +90,77 @@ class MainActivity : AppCompatActivity() {
             }
             startActivity(intent)
         }
+
+        b.btnPanicSave.setOnClickListener {
+            savePanicSettings()
+        }
+
+        b.btnPanicTest.setOnClickListener {
+            savePanicSettings(showToast = false)
+            startActivity(Intent(this, PanicAlertActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            })
+        }
+
+        setupUninstallProtectionSwitch()
+    }
+
+    /** Strict uninstall protection — turning it OFF requires an unlocked owner session or the master password. */
+    private fun setupUninstallProtectionSwitch() {
+        syncUninstallSwitch()
+        b.switchUninstallProtection.setOnCheckedChangeListener { _, checked ->
+            if (ignoreUninstallSwitch) return@setOnCheckedChangeListener
+            if (checked) {
+                UninstallProtection.setEnabled(this, true)
+                Toast.makeText(this, "Strict uninstall protection ON", Toast.LENGTH_SHORT).show()
+            } else {
+                when {
+                    AppSessionState.isValid() -> {
+                        UninstallProtection.setEnabled(this, false)
+                        Toast.makeText(this, "Strict uninstall protection OFF", Toast.LENGTH_SHORT).show()
+                    }
+                    PasswordManager.isSet(this) -> confirmTurnOffUninstallProtection()
+                    else -> {
+                        UninstallProtection.setEnabled(this, false)
+                        Toast.makeText(this, "Strict uninstall protection OFF", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun syncUninstallSwitch() {
+        ignoreUninstallSwitch = true
+        b.switchUninstallProtection.isChecked = UninstallProtection.isEnabled(this)
+        ignoreUninstallSwitch = false
+    }
+
+    private fun confirmTurnOffUninstallProtection() {
+        val input = android.widget.EditText(this).apply {
+            hint = "Enter master password"
+            inputType = android.text.InputType.TYPE_CLASS_TEXT or android.text.InputType.TYPE_TEXT_VARIATION_PASSWORD
+        }
+        val dialog = AlertDialog.Builder(this)
+            .setTitle("Disable Uninstall Protection?")
+            .setMessage("Without this, Tengrow can be removed from anywhere. Enter your master password to confirm.")
+            .setView(input)
+            .setPositiveButton("Confirm", null)
+            .setNegativeButton("Cancel", null)
+            .create()
+        dialog.setOnShowListener {
+            dialog.getButton(AlertDialog.BUTTON_POSITIVE).setOnClickListener {
+                val pwd = input.text.toString()
+                if (PasswordManager.verify(this, pwd)) {
+                    UninstallProtection.setEnabled(this, false)
+                    Toast.makeText(this, "Strict uninstall protection OFF", Toast.LENGTH_SHORT).show()
+                    dialog.dismiss()
+                } else {
+                    Toast.makeText(this, "Wrong password", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        dialog.setOnDismissListener { syncUninstallSwitch() }
+        dialog.show()
     }
 
     override fun onResume() {
@@ -87,8 +172,46 @@ class MainActivity : AppCompatActivity() {
         refreshAccessibilityStatus()
         refreshAdminStatus()
         refreshPasswordStatus()
+        refreshPanicStatus()
         refreshKeywordList()
         updateOverallStatus()
+    }
+
+    private fun refreshPanicStatus() {
+        val enabled = PanicConfig.isEnabled(this)
+        b.tvPanicStatus.text = PanicConfig.summary(this)
+        b.tvPanicStatus.setTextColor(
+            ContextCompat.getColor(this, if (enabled) R.color.status_active else R.color.status_inactive)
+        )
+        if (!panicFieldsInitialized) {
+            panicFieldsInitialized = true
+            b.switchPanic.isChecked = enabled
+            b.etPanicWindow.setText((PanicConfig.windowMs(this) / 60_000L).toString())
+            b.etPanicCount.setText(PanicConfig.triggerCount(this).toString())
+            b.etPanicCooldown.setText((PanicConfig.lockdownMs(this) / 60_000L).toString())
+            b.etPanicName.setText(PanicConfig.contactName(this))
+            b.etPanicPhone.setText(PanicConfig.contactPhone(this))
+        }
+    }
+
+    private fun savePanicSettings(showToast: Boolean = true) {
+        val minutes = b.etPanicWindow.text?.toString()?.toLongOrNull()
+            ?.coerceAtLeast(1L) ?: (PanicConfig.DEFAULT_WINDOW_MS / 60_000L)
+        val count = b.etPanicCount.text?.toString()?.toIntOrNull()
+            ?.coerceAtLeast(2) ?: PanicConfig.DEFAULT_TRIGGER_COUNT
+        val cool = b.etPanicCooldown.text?.toString()?.toLongOrNull()
+            ?.coerceAtLeast(1L) ?: (PanicConfig.DEFAULT_LOCKDOWN_MS / 60_000L)
+        PanicConfig.update(
+            this,
+            b.switchPanic.isChecked,
+            minutes * 60_000L,
+            count,
+            cool * 60_000L,
+            b.etPanicName.text?.toString().orEmpty(),
+            b.etPanicPhone.text?.toString().orEmpty()
+        )
+        refreshPanicStatus()
+        if (showToast) Toast.makeText(this, "Panic Alert settings saved", Toast.LENGTH_SHORT).show()
     }
 
     private fun refreshAccessibilityStatus() {
@@ -229,11 +352,26 @@ class MainActivity : AppCompatActivity() {
                 if (PasswordManager.verify(this, input.text.toString())) {
                     removeKeyword(kw)
                 } else {
-                    Toast.makeText(this, "Wrong password", Toast.LENGTH_SHORT).show()
+                    onDeletePasswordFailed()
                 }
             }
             .setNegativeButton("Cancel", null)
             .show()
+    }
+
+    /**
+     * Aggressive-deletion guard: repeated failed password attempts while
+     * trying to delete protection keywords auto-starts the strict 5-minute
+     * cool-down timer (see [PanicLockdown.registerFailedDeleteAttempt]).
+     */
+    private fun onDeletePasswordFailed() {
+        if (PanicLockdown.registerFailedDeleteAttempt(this)) {
+            startActivity(Intent(this, PanicAlertActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            })
+        } else {
+            Toast.makeText(this, "Wrong password", Toast.LENGTH_SHORT).show()
+        }
     }
 
     private fun loadKeywords(): List<String> {
@@ -242,9 +380,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun saveKeyword(kw: String) {
+        val normalized = KeywordNormalizer.normalize(kw)
+        if (normalized.isEmpty()) return
         val prefs = getSharedPreferences("keywords", Context.MODE_PRIVATE)
         val set = prefs.getStringSet("list", defaultSet())?.toMutableSet() ?: defaultSet().toMutableSet()
-        if (set.add(kw.lowercase())) {
+        if (set.add(normalized)) {
             val tok = prefs.getLong("__token", 0L) + 1
             prefs.edit().putStringSet("list", set).putLong("__token", tok).apply()
             keywordAdapter.submitList(set.sorted())
@@ -254,7 +394,7 @@ class MainActivity : AppCompatActivity() {
     private fun removeKeyword(kw: String) {
         val prefs = getSharedPreferences("keywords", Context.MODE_PRIVATE)
         val set = prefs.getStringSet("list", defaultSet())?.toMutableSet() ?: return
-        if (set.remove(kw)) {
+        if (set.remove(KeywordNormalizer.normalize(kw))) {
             val tok = prefs.getLong("__token", 0L) + 1
             prefs.edit().putStringSet("list", set).putLong("__token", tok).apply()
             keywordAdapter.submitList(set.sorted())
