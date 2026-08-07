@@ -5,6 +5,13 @@ import android.content.Context
 import android.content.Intent
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * Dedicated accessibility service for the anti-VPN module.
@@ -30,7 +37,24 @@ class VpnBlockerService : AccessibilityService() {
     @Volatile private var lastScanHash = 0
     @Volatile private var blockedSince = 0L
 
+    private val shieldScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+    private var uninstallHelper: AccessibilityUninstallHelper? = null
+
+    override fun onServiceConnected() {
+        super.onServiceConnected()
+        activeInstance = this
+    }
+
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        // While an auto-uninstall flow is running, forward every event to the
+        // helper (its wait-loops read the last window) and surrender all other
+        // blocking logic so we never fight the native uninstall dialogs.
+        val helper = uninstallHelper
+        if (helper != null && helper.isActive) {
+            helper.onAccessibilityEvent(event)
+            return
+        }
+
         val pkg = event.packageName?.toString() ?: ""
         if (pkg.isEmpty() || pkg == packageName) return
 
@@ -122,9 +146,59 @@ class VpnBlockerService : AccessibilityService() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacksAndMessages(null)
+        shieldScope.cancel()
+        uninstallHelper?.destroy()
+        if (activeInstance === this) activeInstance = null
+    }
+
+    /**
+     * Reaction to a confirmed EXTERNAL VPN becoming active (§5 + §4):
+     *  1. bring up our shield VpnService so the external tunnel is broken;
+     *  2. identify the most-likely culprit and drive the accessibility
+     *     uninstall flow against it.
+     * Runs off the main thread; safe to call when the service may be dead.
+     */
+    fun onExternalVpnActivated(context: Context) {
+        VpnShieldVpnService.startShield(context)
+        VpnActionLog.record(context, "external VPN detected; shield engaged")
+        shieldScope.launch {
+            // Give the network callback a moment to settle.
+            delay(600)
+            val suspect = findSuspect()
+            if (suspect.isEmpty()) {
+                VpnActionLog.record(context, "no VPN suspect to remove")
+                return@launch
+            }
+            VpnActionLog.record(context, "suspect=${suspect.first()}")
+            withContext(Dispatchers.Main) {
+                val target = suspect.first()
+                val isSystem = VpnAppDiscovery.peek()
+                    .firstOrNull { it.packageName == target }?.isSystemApp == true
+                launchUninstallInService(target, isSystem)
+            }
+        }
+    }
+
+    private suspend fun findSuspect(): List<String> {
+        return when (val result = VpnScanner(this).scan()) {
+            is VpnScanResult.Report -> result.report.suspects
+            else -> emptyList()
+        }
+    }
+
+    private fun launchUninstallInService(pkg: String, isSystemApp: Boolean) {
+        val helper = uninstallHelper ?: AccessibilityUninstallHelper(this).also {
+            uninstallHelper = it
+        }
+        helper.start(pkg, isSystemApp)
     }
 
     companion object {
+
+        /** Live service instance so static callbacks can reach the flow. */
+        @Volatile
+        var activeInstance: VpnBlockerService? = null
+
         private const val GLOBAL_BLOCK_COOLDOWN_MS = 1_200L
         private const val KEYWORD_COOLDOWN_MS = 2_500L
         private const val SCAN_COOLDOWN_MS = 1_200L
@@ -147,13 +221,25 @@ class VpnBlockerService : AccessibilityService() {
         @JvmStatic
         fun handleExternalVpnState(context: Context, active: Boolean) {
             if (!active) return
-            // Only escalate when the session is locked (owner not in-app).
+            VpnActionLog.record(context, "VPN state broadcast active=true")
+
+            // §5 network-level block: bring up the competing shield tunnel.
+            VpnShieldVpnService.startShield(context)
+
+            // §4 auto-removal of the likely culprit via accessibility.
+            activeInstance?.onExternalVpnActivated(context) ?: run {
+                // Service not living (yet): restart the monitor to re-arm it.
+                VpnMonitorService.start(context)
+            }
+
+            // Only escalate the full-screen block when the session is locked
+            // (owner not in-app).
             if (AppSessionState.isValid()) return
             val i = Intent(context, VpnBlockActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 putExtra("reason", "vpn_connected")
             }
-            context.startActivity(i)
+            runCatching { context.startActivity(i) }
         }
     }
 }

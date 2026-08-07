@@ -71,6 +71,17 @@
     <string name="uninstall_protection_desc">Block all attempts to uninstall, disable or remove Tengrow from anywhere while the device is locked.</string>
     <string name="uninstall_protection_enable">Prevent deletion from anywhere</string>
 
+    <string name="vpn_shield_label">Tengrow Shield VPN</string>
+    <string name="vpn_card_title">VPN Protection</string>
+    <string name="vpn_card_desc">Detects VPN apps and counter-VPN tunnels. VPN use is blocked on this device.</string>
+    <string name="vpn_status_clean">No VPN tunnel active</string>
+    <string name="vpn_status_tunnel">VPN tunnel detected — shield engaged</string>
+    <string name="vpn_status_inconclusive">VPN status unavailable</string>
+    <string name="vpn_status_apps">%1$d VPN app(s) installed</string>
+    <string name="btn_vpn_panic">STOP MY VPN — 10-SECOND PANIC</string>
+    <string name="vpn_panic_toast">Your blocking VPN is being stopped (10s).</string>
+    <string name="vpn_block_panic">STOP VPN (10s PANIC)</string>
+
     <string name="vpn_monitor_channel_name">VPN Monitor</string>
     <string name="vpn_monitor_notification_title">VPN Guard Active</string>
     <string name="vpn_monitor_notification_text">Monitoring network connections for VPN usage.</string>

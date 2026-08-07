@@ -18,6 +18,10 @@ import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.safeguard.blocker.databinding.ActivityMainBinding
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
 
@@ -25,6 +29,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var keywordAdapter: KeywordAdapter
     private var panicFieldsInitialized = false
     private var ignoreUninstallSwitch = false
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -102,6 +107,13 @@ class MainActivity : AppCompatActivity() {
             })
         }
 
+        b.btnVpnPanic.setOnClickListener {
+            // §5 panic button: stop our blocking VPN immediately (the 10s
+            // countdown shield can also be scheduled from the block screen).
+            VpnShieldVpnService.stopNow(this)
+            Toast.makeText(this, R.string.vpn_panic_toast, Toast.LENGTH_SHORT).show()
+        }
+
         setupUninstallProtectionSwitch()
     }
 
@@ -166,6 +178,28 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         refreshAll()
+        refreshVpnCard()
+        scope.launch {
+            VpnAppDiscovery.discover(this@MainActivity)
+            refreshVpnCard()
+        }
+    }
+
+    private fun refreshVpnCard() {
+        val status = VpnActiveDetector.checkNow(this)
+        val apps = VpnAppDiscovery.peek()
+        val text = when (status) {
+            is VpnActiveStatus.Active -> getString(R.string.vpn_status_tunnel)
+            is VpnActiveStatus.Unavailable -> getString(R.string.vpn_status_inconclusive)
+            else -> getString(R.string.vpn_status_clean)
+        } + " · " + resources.getString(R.string.vpn_status_apps, apps.size)
+        b.tvVpnStatus.text = text
+        b.tvVpnStatus.setTextColor(
+            ContextCompat.getColor(
+                this,
+                if (status is VpnActiveStatus.Active) R.color.status_active else R.color.status_inactive
+            )
+        )
     }
 
     private fun refreshAll() {

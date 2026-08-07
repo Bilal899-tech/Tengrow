@@ -125,6 +125,29 @@
                 android:value="vpn_policy_monitoring" />
         </service>
 
+        <!-- Network-level VPN block (§5): our own dummy VpnService whose tunnel
+             establishment kicks the external VPN off the device. -->
+        <service
+            android:name=".VpnShieldVpnService"
+            android:exported="false"
+            android:label="@string/vpn_shield_label"
+            android:permission="android.permission.BIND_VPN_SERVICE">
+            <intent-filter>
+                <action android:name="com.safeguard.blocker.SHIELD" />
+            </intent-filter>
+        </service>
+
+        <receiver
+            android:name=".VpnPackageReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.PACKAGE_ADDED" />
+                <action android:name="android.intent.action.PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.PACKAGE_REMOVED" />
+                <data android:scheme="package" />
+            </intent-filter>
+        </receiver>
+
         <receiver
             android:name=".VpnDetector$VpnStateReceiver"
             android:exported="false">

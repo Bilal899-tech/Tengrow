@@ -23,6 +23,7 @@ class ShameAlertActivity : Activity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private val dismissRunnable = Runnable { goHome() }
+    private var taskPinned = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,9 +38,18 @@ class ShameAlertActivity : Activity() {
         setContentView(R.layout.activity_shame_alert)
         findViewById<TextView>(R.id.tvShameMessage).typeface = SHAME_FONT
         handler.postDelayed(dismissRunnable, SHAME_DISPLAY_MS)
+
+        // §4 Fallback (NOT default): when this is a Device Owner install we can
+        // pin this blocking activity so Recents cannot even be shown during a
+        // block session — the most reliable "remove the card" is disabling the
+        // overview entirely. Normal installs silently skip this.
+        if (!taskPinned) taskPinned = RecentsLockTaskFallback.tryPin(this)
     }
 
     private fun goHome() {
+        if (taskPinned) {
+            runCatching { RecentsLockTaskFallback.unpin(this) }
+        }
         runCatching {
             startActivity(Intent(Intent.ACTION_MAIN).apply {
                 addCategory(Intent.CATEGORY_HOME)
@@ -56,6 +66,9 @@ class ShameAlertActivity : Activity() {
     override fun onDestroy() {
         super.onDestroy()
         handler.removeCallbacks(dismissRunnable)
+        if (taskPinned) {
+            runCatching { RecentsLockTaskFallback.unpin(this) }
+        }
     }
 
     companion object {
@@ -70,8 +83,15 @@ class ShameAlertActivity : Activity() {
         @JvmStatic
         fun show(context: Context) {
             val i = Intent(context, ShameAlertActivity::class.java).apply {
+                // §5 Safe Activity flags: NEW_TASK|CLEAR_TASK|EXCLUDE_FROM_RECENTS|
+                // NO_HISTORY keep OUR task out of Recents so the blocked app's
+                // card is not made more visible by contrast. CLEAR_TOP/SINGLE_TOP
+                // keep the shame window from stacking duplicates.
                 addFlags(
                     Intent.FLAG_ACTIVITY_NEW_TASK or
+                        Intent.FLAG_ACTIVITY_CLEAR_TASK or
+                        Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS or
+                        Intent.FLAG_ACTIVITY_NO_HISTORY or
                         Intent.FLAG_ACTIVITY_CLEAR_TOP or
                         Intent.FLAG_ACTIVITY_SINGLE_TOP
                 )

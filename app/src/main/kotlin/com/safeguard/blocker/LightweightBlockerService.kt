@@ -23,6 +23,7 @@ class LightweightBlockerService : AccessibilityService() {
     @Volatile private var lastUninstallBlockMs = 0L
     @Volatile private var lastScanHash = 0
     @Volatile private var serviceEnabledAtMs = 0L
+    private lateinit var recentsSwiper: RecentsSwiper
     private val browserPackages = setOf(
         "com.android.chrome", "org.chromium.chrome",
         "org.mozilla.firefox", "org.mozilla.fennec_fdroid",
@@ -44,6 +45,7 @@ class LightweightBlockerService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         serviceEnabledAtMs = System.currentTimeMillis()
+        recentsSwiper = RecentsSwiper(this)
     }
 
     private fun bootstrapKeywordsIfNeeded() {
@@ -111,6 +113,16 @@ class LightweightBlockerService : AccessibilityService() {
 
         if (pkg == packageName) return
         if (pkg.isEmpty()) return
+
+        // Recents/Overview opened? Remove the blocked app's task card.
+        // The self-package guard above is the §6 loop protection: the swipe
+        // must never react to events we produce ourselves.
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED &&
+            OemDetector.mayBeRecents(pkg, event.className?.toString())
+        ) {
+            if (::recentsSwiper.isInitialized) recentsSwiper.startIfRecents(this)
+            return
+        }
 
         val passwordSet = PasswordManager.isSet(this)
         val source = event.source
@@ -183,7 +195,7 @@ class LightweightBlockerService : AccessibilityService() {
             val typed = etype == AccessibilityEvent.TYPE_VIEW_TEXT_CHANGED
             for (kw in kws) {
                 if (keywordHits(normalizedText, kw, typed)) {
-                    triggerBlock(kw)
+                    triggerBlock(kw, pkg)
                     return
                 }
             }
@@ -310,8 +322,11 @@ class LightweightBlockerService : AccessibilityService() {
         return false
     }
 
-    private fun triggerBlock(kw: String) {
+    private fun triggerBlock(kw: String, blockedPackage: String) {
         val now = System.currentTimeMillis()
+        // Queue this package so its card can be swiped out of Recents when the
+        // user opens the overview screen (§1). Entries expire after 30s.
+        RecentsCleaner.recordBlock(this, blockedPackage)
         val lastForKeyword = lastBlockByKeyword[kw] ?: 0L
         if (now - lastForKeyword < KEYWORD_REPEAT_COOLDOWN_MS) return
         lastBlockByKeyword[kw] = now
